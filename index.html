@@ -465,7 +465,7 @@ To make your own files, copy the structure of an example file or see Section 1 o
             loadScript.append(data);
             document.getElementsByTagName("head")[0].appendChild(loadScript);
             // Once the script is loaded in the <script> tag, we can run it
-            const simulatedData = Simulate(dataSet);
+            const simulatedData = simulate(dataSet);
             resolve(simulatedData);
           } catch (err) {
             reject({ status: "error", error: "Error: " + err });
