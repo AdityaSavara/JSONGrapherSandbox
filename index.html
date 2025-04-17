@@ -494,10 +494,16 @@ To make your own files, copy the structure of an example file or see Section 1 o
 
             // Execute the simulate function with the dataset
             const simulatedData = await simulate(dataSet);
-            console.log("Simulate function executed successfully.");
+            console.log("Simulate function output received successfully.");
 
-            // Add a stringified version of the simulated data to the log
-            console.log("Simulated Data:", JSON.stringify(simulatedData));
+            // Check if simulatedData is an array
+            if (Array.isArray(simulatedData)) {
+                // Log an error message for arrays
+                console.log("Simulate function failed, simulate function log:", JSON.stringify(simulatedData));
+            } else {
+                // Log the simulated data for non-array JSON types
+                console.log("Simulated Data:", JSON.stringify(simulatedData));
+            }            
 
             // Resolve the Promise with the simulated data
             resolve(simulatedData);
