@@ -470,27 +470,27 @@ To make your own files, copy the structure of an example file or see Section 1 o
                   document.getElementsByTagName("head")[0].appendChild(loadScript);
     
                   // Debug: Check if the `simulate` function exists
-                  console.log("Debug - Simulate Function Exists:", typeof Simulate === 'function');
+                  console.log("Debug - simulate Function Exists:", typeof simulate === 'function');
     
                   // Run the `simulate` function
                   const simulatedData = simulate(dataSet);
     
                   // Debug: Log the output of the `simulate` function
-                  console.log("Debug - Simulate Output:", simulatedData);
+                  console.log("Debug - simulate Output:", simulatedData);
     
                   // Check if `simulatedData` and `simulatedData.data` exist before accessing
                   if (simulatedData && simulatedData.data) {
                       resolve(simulatedData.data);
                   } else {
-                      console.error("Debug - Simulate returned undefined or no 'data' property:", simulatedData);
-                      reject({ status: "error", error: "Error: Simulate returned undefined or missing 'data' property." });
+                      console.error("Debug - simulate returned undefined or no 'data' property:", simulatedData);
+                      reject({ status: "error", error: "Error: simulate returned undefined or missing 'data' property." });
                   }
     
                   // Try to remove the script tag
                   try {
                       document.getElementsByTagName("head")[0].removeChild(loadScript);
                   } catch (error) {
-                      console.warn("Failed to remove script tag. Falling back to overwriting Simulate.");
+                      console.warn("Failed to remove script tag. Falling back to overwriting simulate.");
                       // Overwrite the `simulate` function as a fallback
                       simulate = null;
                   }
