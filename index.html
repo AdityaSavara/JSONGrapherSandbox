@@ -456,35 +456,22 @@ To make your own files, copy the structure of an example file or see Section 1 o
         }
       }
 
-        //  a function that gets the simulate script from an external file by url
+      //  a function that gets the simulate script from an external file by url
       function getAndRunSimulateScript(dataSet, jsonified, index) {
-          return new Promise(async (resolve, reject) => {
-              try {
-                  // Load the external script
-                  const loadScript = document.createElement("script");
-                  const data = await getRawContent(parseUrl(dataSet.simulate.model));
-                  loadScript.append(data);
-                  document.getElementsByTagName("head")[0].appendChild(loadScript);
-   
-                  // Run the `simulate` function
-                  const simulatedData = Simulate(dataSet);
-   
-                  // Try to remove the script tag
-                  try {
-                      document.getElementsByTagName("head")[0].removeChild(loadScript);
-                  } catch (error) {
-                      console.warn("Failed to remove script tag. Falling back to overwriting Simulate.");
-                      // Overwrite the `simulate` function as a fallback
-                      Simulate = null;
-                  }
-   
-                  resolve(simulatedData);
-              } catch (err) {
-                  reject({ status: "error", error: "Error: " + err });
-              }
-          });
+        return new Promise(async (resolve, reject) => {
+          try {
+            loadScript = document.createElement("script");
+            const data = await getRawContent(parseUrl(dataSet.simulate.model));
+            loadScript.append(data);
+            document.getElementsByTagName("head")[0].appendChild(loadScript);
+            // Once the script is loaded in the <script> tag, we can run it
+            const simulatedData = Simulate(dataSet);
+            resolve(simulatedData);
+          } catch (err) {
+            reject({ status: "error", error: "Error: " + err });
+          }
+        });
       }
-
 
       // Check the units of the simulated data compared to the json record layout field and convert them if needed
       function maybeConvertSimulatedDataUnits(jsonified, simulatedData, index) {
