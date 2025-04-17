@@ -456,22 +456,90 @@ To make your own files, copy the structure of an example file or see Section 1 o
         }
       }
 
-      //  a function that gets the simulate script from an external file by url
-      function getAndRunSimulateScript(dataSet, jsonified, index) {
-        return new Promise(async (resolve, reject) => {
-          try {
-            loadScript = document.createElement("script");
-            const data = await getRawContent(parseUrl(dataSet.simulate.model));
-            loadScript.append(data);
-            document.getElementsByTagName("head")[0].appendChild(loadScript);
-            // Once the script is loaded in the <script> tag, we can run it
-            const simulatedData = simulate(dataSet);
-            resolve(simulatedData);
-          } catch (err) {
-            reject({ status: "error", error: "Error: " + err });
-          }
-        });
+      /**
+       * Loads an external script from the given URL and appends it to the document's <head> tag.
+       * This ensures the script is available for use globally.
+       * @param {string} url - The URL of the script to load.
+       * @returns {Promise<HTMLScriptElement>} - Resolves with the script element once loaded.
+       */
+      function loadScript(url) {
+          return new Promise((resolve, reject) => {
+              const script = document.createElement("script"); // Create a new <script> element
+              script.src = url; // Set the script's source URL
+              script.async = true; // Load asynchronously to prevent blocking
+
+              // Event listener for successful script load
+              script.onload = () => {
+                  console.log(`Script loaded successfully from ${url}`);
+                  resolve(script); // Resolve the Promise with the script element
+              };
+
+              // Event listener for script load failure
+              script.onerror = () => {
+                  console.error(`Failed to load script from ${url}`);
+                  reject(new Error(`Failed to load script from ${url}`)); // Reject the Promise with an error
+              };
+
+              // Append the <script> element to the document's <head> tag
+              document.head.appendChild(script);
+          });
       }
+
+      /**
+       * Removes a previously loaded <script> element from the document's <head> tag.
+       * Optionally clears the global reference to a function defined in the script.
+       * @param {HTMLScriptElement} scriptElement - The script element to remove.
+       * @param {string} functionName - The name of the global function to clear (optional).
+       */
+      function unloadScript(scriptElement, functionName) {
+          // Remove the script element from the DOM if it exists
+          if (scriptElement) {
+              document.head.removeChild(scriptElement);
+              console.log("Script removed from the DOM.");
+          }
+
+          // Clear the global reference to the specified function if it exists
+          if (functionName && typeof window[functionName] === "function") {
+              window[functionName] = null; // Set the function to null
+              console.log(`Function '${functionName}' has been cleared.`);
+          }
+      }
+
+      /**
+       * Loads a script containing the simulate function from an external file, runs the simulate function,
+       * and then unloads the script and clears the simulate function reference after use.
+       * @param {Object} dataSet - The data set to pass to the simulate function.
+       * @returns {Promise<any>} - Resolves with the result of the simulate function.
+       */
+      async function getAndRunSimulateScript(dataSet) {
+          let scriptElement; // Variable to store the loaded script element
+
+          try {
+              // Step 1: Parse the URL and load the external script
+              const scriptUrl = parseUrl(dataSet.simulate.model); // Parse the URL for the script location
+              scriptElement = await loadScript(scriptUrl); // Load the script and store the script element
+
+              // Step 2: Ensure the simulate function exists in the global scope
+              if (typeof simulate !== "function") {
+                  throw new Error("Simulate function is not defined in the loaded script.");
+              }
+
+              // Step 3: Run the simulate function and log the output for debugging
+              console.log("Simulate function exists and is being executed.");
+              const simulatedData = simulate(dataSet); // Execute the simulate function with the given data set
+
+              // Step 4: Return the result of the simulate function
+              return simulatedData;
+          } catch (error) {
+              // Step 5: Log any errors that occur during script execution
+              console.error("Error during script execution:", error);
+              throw { status: "error", error: error.message };
+          } finally {
+              // Step 6: Unload the script and clear the simulate function reference
+              unloadScript(scriptElement, "simulate");
+          }
+      }
+
 
       // Check the units of the simulated data compared to the json record layout field and convert them if needed
       function maybeConvertSimulatedDataUnits(jsonified, simulatedData, index) {
