@@ -473,7 +473,7 @@ To make your own files, copy the structure of an example file or see Section 1 o
                   console.log("Debug - Simulate Function Exists:", typeof Simulate === 'function');
     
                   // Run the `simulate` function
-                  const simulatedData = simulate(dataSet);
+                  const simulatedData = Simulate(dataSet);
     
                   // Debug: Log the output of the `simulate` function
                   console.log("Debug - Simulate Output:", simulatedData);
@@ -492,7 +492,7 @@ To make your own files, copy the structure of an example file or see Section 1 o
                   } catch (error) {
                       console.warn("Failed to remove script tag. Falling back to overwriting Simulate.");
                       // Overwrite the `simulate` function as a fallback
-                      simulate = null;
+                      Simulate = null;
                   }
               } catch (err) {
                   console.error("Debug - Error during execution:", err);
