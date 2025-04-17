@@ -456,57 +456,36 @@ To make your own files, copy the structure of an example file or see Section 1 o
         }
       }
 
+      //  a function that gets the simulate script from an external file by url
       /**
        * A function that gets the simulate script from an external file by URL,
        * runs the simulate function, and resolves the output.
        */
       async function getAndRunSimulateScript(dataSet, jsonified, index) {
-          return new Promise((resolve, reject) => {
+          return new Promise(async (resolve, reject) => {
               try {
-                  // Step 1: Create a script element
-                  const loadScript = document.createElement("script");
-    
-                  // Step 2: Parse the URL to get the script location
-                  const scriptUrl = parseUrl(dataSet.simulate.model);
-    
-                  // Step 3: Set up the script element attributes
-                  loadScript.src = scriptUrl;
-                  loadScript.async = true;
-    
-                  // Step 4: Handle script load event
-                  loadScript.onload = async () => {
-                      try {
-                          // Ensure the simulate function exists before calling
-                          if (typeof simulate !== "function") {
-                              throw new Error("Simulate function is not defined.");
-                          }
-    
-                          // Await the simulate function as it performs an async call
-                          const simulatedData = await simulate(dataSet);
-    
-                          // Resolve the simulated data
-                          resolve(simulatedData);
-                      } catch (error) {
-                          // Handle errors in the simulate function
-                          reject({ status: "error", error: "Error in simulate function: " + error.message });
-                      }
-                  };
-    
-                  // Step 5: Handle script load error
-                  loadScript.onerror = () => {
-                      reject({ status: "error", error: "Failed to load script from " + scriptUrl });
-                  };
-    
-                  // Step 6: Add the script to the document head
-                  document.head.appendChild(loadScript);
+                  // Create a script element
+                  loadScript = document.createElement("script");
+   
+                  // Get the raw content from the specified URL
+                  const data = await getRawContent(parseUrl(dataSet.simulate.model));
+                  loadScript.append(data);
+   
+                  // Add the script to the document head
+                  document.getElementsByTagName("head")[0].appendChild(loadScript);
+   
+                  // Once the script is loaded in the <script> tag, we can run it
+                  const simulatedData = await simulate(dataSet);
+   
+                  // Resolve the Promise with the simulated data
+                  resolve(simulatedData);
               } catch (err) {
-                  // General error handling for the entire process
-                  reject({ status: "error", error: "Error: " + err.message });
+                  // Reject the Promise with the error message
+                  reject({ status: "error", error: "Error: " + err });
               }
           });
       }
-    
-     
+   
 
       // Check the units of the simulated data compared to the json record layout field and convert them if needed
       function maybeConvertSimulatedDataUnits(jsonified, simulatedData, index) {
