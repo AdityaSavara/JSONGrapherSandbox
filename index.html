@@ -10,7 +10,7 @@
       gtag('config', 'G-90P9PHYQ9J');
     </script>
     <meta charset="UTF-8" />
-    <title>JSONGrapher Sandbox</title>
+    <title>JSONGrapher</title>
     <script src="https://cdn.plot.ly/plotly-2.14.0.min.js"></script>
     <!--  We use AJV for json validation. We use the 6.12.6 version because the later version had a compilation error. To reduce the external dependency, we have the source code on our github in he AJV folder, it is an under an MIT LICENSE, as noted in the LICENSE file of JSON Grapher.
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/6.12.6/ajv.bundle.min.js" integrity="sha512-Xl0g/DHU98OkfXTsDfAAuTswzkniYQWPwLyGXzcpgDxCeH52eePfaHj/ictLAv2GvlPX2qZ6YV+3oDsw17L9qw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
@@ -36,7 +36,7 @@
       <div class="container">
         <a href="index.html">
           <div class="button active">
-            <p>JSONGrapher Sandbox</p>
+            <p>JSONGrapher</p>
           </div>
         </a>
         <a href="Manual.pdf" target="_blank">
@@ -44,7 +44,7 @@
             <p>Manual</p>
           </div>
         </a>
-        <a href="https://github.com/AdityaSavara/JSONGrapherSandbox" target="_blank">
+        <a href="https://github.com/AdityaSavara/JSONGrapher" target="_blank">
           <div class="button">
             <p>Source</p>
           </div>
@@ -62,46 +62,24 @@
       </div>
     </header>
     <div class="page">
-      <h1>JSONGrapher Sandbox</h1>
-      <p>
-        JSONGrapher plots data from one or more files, including converting the units! Just drag-and-drop one of the example files into the box below, or use the browse-to-upload option. Then, add more files to compare more data on the same graph!  <br />
-      </p>
-      <p>
-	Try plotting one of the 
-        <a
-          href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/DemonstrationFiles.zip"
-          target="_blank"
-          >example files</a
-        > (first unzip, then plot with JSONGrapher). <br />
+      <h1>JSONGrapher</h1>
+<p>
+    JSONGrapher plots data from one or more files, including converting the units! Just drag-and-drop one of the example files into the box below, or use the browse-to-upload option. Then, add more files to compare more data on the same graph! <br />
+</p>
+<p>
+    Try plotting one of the 
+    <a href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/DemonstrationFiles.zip" target="_blank">example files</a> 
+    (first unzip, then plot with JSONGrapher). <br />
+</p>
+<p>
+    To make your own files, use the 
+    <a href="https://adityasavara.github.io/JSONGrapher/other_html/RecordCreator/BrowserRecordCreator.html" target="_blank"> browser record creator</a>, 
+    or edit an example file, or see the <a href="https://adityasavara.github.io/JSONGrapher/Manual.pdf" target="_blank">manual</a>. <br />
+    <a href="https://www.dropbox.com/s/1s8ib1rsv3xmj1c/3_edited.mp4?dl=0" target="_blank">How to Plot and Plotting Features Video</a> | 
+    <a href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/DemonstrationFiles.zip" target="_blank">Example Files</a> | 
+    <a href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/ExampleDataRecords.zip" target="_blank">More Examples</a>
+</p>
 
-JSONGrapher currently supports compatibly structured CSV and JSON files. <br />
-      </p>
-
-To make your own files, copy the structure of an example file or see Section 1 of the 
-
-	<a
-          href="https://adityasavara.github.io/JSONGrapher/Manual.pdf"
-          target="_blank"
-          >manual</a
-        >.  <br />
-	 <a
-          href="https://www.dropbox.com/s/1s8ib1rsv3xmj1c/3_edited.mp4?dl=0"
-          target="_blank"
-          >How to Plot and Plotting Features Video</a
-        >
-        |
-        <a
-          href=" https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/DemonstrationFiles.zip"
-          target="_blank"
-          >Example Files</a
-        >
-        |
-        <a
-          href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/ExampleDataRecords.zip"
-          target="_blank"
-          >More Examples</a
-        >
-      </p>
       <div class="file-actions">
         <input type="file" id="file-selector" />
         <button id="reset" onclick="clearData()">Clear Data</button>
@@ -468,6 +446,7 @@ To make your own files, copy the structure of an example file or see Section 1 o
             console.log("Dataset received:", dataSet);
 
             // Create a script element
+
             const loadScript = document.createElement("script");
 
             // Debug the URL being parsed and fetched
@@ -493,6 +472,7 @@ To make your own files, copy the structure of an example file or see Section 1 o
             }
 
             // Execute the simulate function with the dataset
+
             const simulatedData = await simulate(dataSet);
             console.log("Simulate function output received successfully.");
 
@@ -512,10 +492,10 @@ To make your own files, copy the structure of an example file or see Section 1 o
             console.error("Error occurred in getAndRunSimulateScript:", err);
             reject({ status: "error", error: "Error: " + err });
         }
+
         });
       }
      
-
       // Check the units of the simulated data compared to the json record layout field and convert them if needed
       function maybeConvertSimulatedDataUnits(jsonified, simulatedData, index) {
         return new Promise((resolve, reject) => {
@@ -1072,7 +1052,7 @@ To make your own files, copy the structure of an example file or see Section 1 o
                 });
               } else {
                 //clearData(); //Should not clear data when chart or axis titles do not match, just should not plot the new data.
-                errorDiv.innerText += `Added data not plotted. The units were not compatible or were not converted successfully. \n`;
+                errorDiv.innerText += `Added data not plotted. The units were not compatible or were not converted successfully. Click the button to clear data if you want to start a new graph. \n`;
               }
             }
           } catch (err) {
