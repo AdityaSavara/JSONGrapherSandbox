@@ -1,7 +1,7 @@
 # [JSONGrapher]()
 
-Online address for using the JSON Grapher: 
-https://adityasavara.github.io/JSONGrapher/
+Online address for using the JSON Grapher Sandbox: 
+https://adityasavara.github.io/JSONGrapherSandbox/
 
 JSON grapher allows creating scatter-line plots from one or more JSON files containing x-y data.
 You can upload the example files to the above link to try using JSONGrapher.
