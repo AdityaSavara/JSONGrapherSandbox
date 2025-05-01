@@ -18,10 +18,10 @@
         <label for="plotTitle">Graph Title:</label>
         <input type="text" id="plotTitle" name="plotTitle" required><br><br>
 
-        <label for="seriesName">Data Series Name:</label>
+        <label for="seriesName">Data Series Name for Legend:</label>
         <input type="text" id="seriesName" name="seriesName" required><br><br>
 
-        <label for="uid">Data Series Unique Identifier (optional):</label>
+        <label for="uid">Data Series Unique ID (optional):</label>
         <input type="text" id="uid" name="uid"><br><br>
        
         <label for="xLabel">X-Axis Label (excluding units):</label>
@@ -84,17 +84,22 @@
                 ],
                 layout: {
                     comments: "// The title field of the layout is the title of the graph (not of a series).",
-                    title: plotTitle,
+                    title: {
+                        text: plotTitle
+                    },
                     xaxis: {
                         comments: "// The x axis title must include the units that are expected.",
-                        title: `${xLabel} (${xUnit})`
+                        title: {
+                            text: `${xLabel} (${xUnit})`
+                        }
                     },
                     yaxis: {
                         comments: "// The y axis title must include the units that are expected.",
-                        title: `${yLabel} (${yUnit})`
+                        title: {
+                            text: `${yLabel} (${yUnit})`
+                        }
                     }
-                }
-            };
+                };
 
             const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
             const link = document.createElement('a');
