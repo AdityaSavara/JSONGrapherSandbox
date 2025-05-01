@@ -70,37 +70,32 @@
             const yValues = parseValues(document.getElementById('yValues').value);
 
             const jsonData = {
-                comments: comments || "// Default comments for the JSON record.",
+                comments: comments || "// The comments field can be used to put a description and metadata such as citations.",
                 datatype: datatype,
                 data: [
                     {
-                        comments: "// The curly bracket starts a data series. A file can have more than one data series. The uid is an optional unique ID and can even be a doi, for example.",
                         uid: uid || "",
                         name: seriesName,
                         x: xValues,
                         y: yValues,
-                        extraInformation: "This is just an example of how to add extra information for a series."
                     }
                 ],
                 layout: {
-                    comments: "// The title field of the layout is the title of the graph (not of a series).",
                     title: {
                         text: plotTitle
                     },
                     xaxis: {
-                        comments: "// The x axis title must include the units that are expected.",
                         title: {
                             text: `${xLabel} (${xUnit})`
                         }
                     },
                     yaxis: {
-                        comments: "// The y axis title must include the units that are expected.",
                         title: {
                             text: `${yLabel} (${yUnit})`
                         }
                     }
-                };
-
+                },
+            }
             const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
