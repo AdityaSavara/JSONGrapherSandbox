@@ -1010,9 +1010,8 @@
             if (!globalData) {
               let _jsonified = JSON.parse(JSON.stringify(jsonified));
               globalData = _jsonified;
-              console.log("In index.html, top of prepareForPlotting, here is globalData", globalData.data);
-              console.log("In index.html, top of prepareForPlotting, here is _jsonified", globalData.data);
-              console.log("In index.html, top of prepareForPlotting, here is jsonified", globalData.data);
+              console.log("In index.html, top of prepareForPlotting, here is _jsonified", JSON.parse(JSON.stringify(_jsonified.data)));
+              console.log("In index.html, top of prepareForPlotting, here is jsonified", JSON.parse(JSON.stringify(jsonified)));
               
               // Get the unit from the label
               const xUnit = getUnitFromLabel(globalData.layout.xaxis.title.text);
@@ -1023,7 +1022,7 @@
                 x: xUnit,
                 y: yUnit,
               };
-              console.log("In index.html, prepareForPlotting, here is globalData before STEP4", globalData.data);
+              console.log("In index.html, prepareForPlotting, here is globalData before STEP4", JSON.parse(JSON.stringify(globalData.data)));
               // STEP 4: Check if the object has a dataSet that has a simulate key in it, and runs the simulate function based on the value provided in the key model
               // Iterate through the dataset and check if there is a simulation to run for each dataset
               for (const dataSet of globalData.data) {
@@ -1054,7 +1053,7 @@
                   // There is  no STEP 5 at this line, because the first dataset provided by the user is used to define the units of GlobalData.
                 }
               }
-              console.log("In index.html, prepareForPlotting, here is globalData before line 1050 resolve", globalData.data);
+              console.log("In index.html, prepareForPlotting, here is globalData before line 1050 resolve", JSON.parse(JSON.stringify(globalData.data)));
               //Finally, return the objects that have been prepared for plotting an downloading.
               resolve({
                 data: globalData,
