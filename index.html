@@ -20,6 +20,13 @@
     <script src="./UUC/app/convert_parse.js"></script>
     <script src="./UUC/app/convert_macro.js"></script>
     <script src="./UUC/app/data.js"></script>
+    //Load the layout styles here so that the other utils can use them.
+    <script src="./utils/styles/layout_styles_library.js"></script>
+    <script src="./utils/styles/trace_styles_collection_library.js"></script>
+
+    <script src="./utils/figDictUtils.js"></script>
+    <script src="./utils/styleUtils.js"></script>
+
     <style>
       .file-actions {
         display: flex;
@@ -172,11 +179,10 @@
         custom = arr[5]; //This field is for custom json objects and is currently ignored.
 
         //extract the series names
-        let series_names_array = arr[6]
+        let series_names_array = arr[5]
           .split(":")[1]
           .split('"')[0]
           .split("\t")
-          .splice(0, number_of_columns - 1)
           .map((n) => n.trim());
 
         //ignore arr[7] which is custom_variables:
@@ -399,6 +405,24 @@
         return "";
       }
 
+      //This is a helper function to create superscript tags for plotly right before plotting.
+      function replaceSuperscripts(inputString) {
+        // Step 1: Wrap superscript expressions in <sup> tags
+        let outputString = inputString.replace(/\^\((.*?)\)|\*\*\((.*?)\)/g, 
+          (match, p1, p2) => `<sup>${p1 || p2}</sup>`);
+
+        // Step 2: Remove parentheses if the content is only digits
+        outputString = outputString.replace(/<sup>\((\d+)\)<\/sup>/g, '<sup>$1</sup>');
+
+        // Step 3: Remove parentheses if the content is a negative number (- followed by digits)
+        outputString = outputString.replace(/<sup>\(-(\d+)\)<\/sup>/g, '<sup>-$1</sup>');
+
+        // Step 4: Remove parentheses if the superscript is a single letter
+        outputString = outputString.replace(/<sup>\((\w)\)<\/sup>/g, '<sup>$1</sup>');
+
+        return outputString;
+      }
+
       // A function that removes the unit from the label
       function removeUnitFromLabel(label) {
         const unit = getUnitFromLabel(label);
@@ -582,9 +606,36 @@
       }
 
       // A function that visualizes the data with plotly
-      function visualizeData(globalData) {
-        let copyForPlotly = JSON.parse(JSON.stringify(globalData)); // Plotly mutates the input !!!
-        Plotly.newPlot("plotlyDiv", copyForPlotly.data, copyForPlotly.layout);
+      function plot_with_plotly(globalData) {
+        console.log("Index.html at top of plot_with_plotly", globalData)  
+        let figDict = globalData; // Ensure figDict is declared
+        let plotStyle = { layout_style: "", trace_styles_collection: "" };
+
+          if (JSON.stringify(plotStyle) === JSON.stringify({ layout_style: "", trace_styles_collection: "" })) {
+              plotStyle = figDict.plot_style ?? { layout_style: "", trace_styles_collection: "" };
+          }
+
+          // Parse the plot style
+          plotStyle = parsePlotStyle(plotStyle);
+          console.log("Index.html before applyPlotStyleToPlotlyDict", figDict)
+          // Apply the plot style
+          figDict = applyPlotStyleToPlotlyDict(figDict, plotStyle);
+          console.log("Index.html after applyPlotStyleToPlotlyDict", figDict)
+          // Clean out the fields and make a Plotly object
+          figDict = cleanJsonFigDict(figDict, ["simulate", "custom_units_chevrons", "equation", "trace_style", "3d_axes", "bubble", "superscripts"]);
+
+          let copyForPlotly = JSON.parse(JSON.stringify(globalData)); // Plotly mutates the input
+          
+          // Replace superscripts in some fields for Plotly
+          copyForPlotly.layout.yaxis.title.text = replaceSuperscripts(copyForPlotly.layout.yaxis.title?.text ?? "");
+          copyForPlotly.layout.xaxis.title.text = replaceSuperscripts(copyForPlotly.layout.xaxis.title?.text ?? "");
+
+          // Ensure Plotly is available before calling newPlot
+          if (typeof Plotly !== "undefined") {
+              Plotly.newPlot("plotlyDiv", copyForPlotly.data, copyForPlotly.layout);
+          } else {
+              console.error("Plotly is not loaded.");
+          }
       }
 
       // A function that will create a csv string from the jsonified data
@@ -932,7 +983,7 @@
                 // STEP 6: Provide file with converted units for download as JSON and CSV by buttons
                 appendDownloadButtons(res.downloadData, res.fileName);
                 // STEP 7: The plotly template is rendered on the browser
-                visualizeData(res.data);
+                plot_with_plotly(res.data);
               });
             }
           });
