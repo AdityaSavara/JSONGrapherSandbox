@@ -223,10 +223,20 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
     if (traceStyle === "") {
         traceStyle = Object.keys(stylesCollectionDict)[0]; // Take the first traceStyle name in the styleDict
     }
-    console.log("styleUtils.js right before determineColorScaleStructure", copyJson(dataSeries));
-    ({ dataSeries, colorscaleStructure, colorscale } = determineColorScaleStructure(dataSeries));
-    console.log("styleUtils.js right after determineColorScaleStructure", copyJson(dataSeries));
 
+    // Check if traceStyle is a string and extract colorscale if applicable
+    //This should be done before extracting the trace_style from the styles_available, because we need to split the string to break out the trace_style
+    //Also should be initialized before determining the second half of colorscale_structure checks (which occurs after the trace_style application), since it affects that logic.
+    if (typeof traceStyle === "string") {
+        if (traceStyle.includes("__")) {
+            [traceStyle, colorscale] = traceStyle.split("__");
+        }
+    }
+
+    console.log("styleUtils.js right before determineColorScaleStructure", copyJson(dataSeries));
+    ({ dataSeries, colorscaleStructure} = determineColorScaleStructureFirstHalf(dataSeries, traceStyle, colorscale));
+    console.log("styleUtils.js right after determineColorScaleStructure", copyJson(dataSeries));  
+    
     if (traceStyle in stylesCollectionDict) {
         traceStyle = stylesCollectionDict[traceStyle];
     } else if (!(traceStyle in stylesCollectionDict)) {  // Check if traceStyle isn't in the dictionary
@@ -237,7 +247,6 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
 
     // Apply type and other predefined settings
     dataSeries.type = traceStyle?.type;
-
     console.log("StyleUtils.js, style dict Before loop", copyJson(traceStyle));
     for (const [key, value] of Object.entries(traceStyle)) {
         if (key !== "type") {
@@ -252,6 +261,7 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
         }
     }
 
+    ({ dataSeries, colorscaleStructure} = determineColorScaleStructureSecondHalf(dataSeries, traceStyle, colorscale));
     console.log("This is in styleUtil.js after the loop", copyJson(dataSeries));
 
     updatedDataSeries = applyColorScale(dataSeries);
@@ -259,29 +269,24 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
     return dataSeries;
 }
 
-
-function determineColorScaleStructure(dataSeries) {
-    let colorscale = ""; // Initialize variable
+function determineColorScaleStructureFirstHalf(dataSeries, traceStyle, colorscale) {
     let colorscaleStructure = ""; // Initialize variable for later use
-    let traceStyle = dataSeries.trace_style; // Get traceStyle from dataSeries
 
-    // Check if traceStyle is a string and extract colorscale if applicable
-    if (typeof traceStyle === "string") {
-        if (traceStyle.includes("__")) {
-            [traceStyle, colorscale] = traceStyle.split("__");
-        }
-    }
     console.log("styleUtils.js, determineColorScaleStructure before if bubble", copyJson(dataSeries));
     // 3D and bubble plots have a colorscale by default
     if (traceStyle === "bubble") {
         dataSeries = prepareBubbleSizes(dataSeries);
         colorscaleStructure = "bubble";
+        console.log("styleUtils.js right after prepareBubbleSizes", dataSeries);
     } else if (traceStyle === "mesh3d") {
         colorscaleStructure = "mesh3d";
     } else if (traceStyle === "scatter3d") {
         colorscaleStructure = "scatter3d";
     }
+    return { dataSeries, colorscaleStructure};
+}
 
+function determineColorScaleStructureSecondHalf(dataSeries, traceStyle, colorscale) {
     // Check if colorscale is provided and determine the colorscale structure
     if (colorscale !== "") {
         if (dataSeries.mode.includes("markers") || dataSeries.mode.includes("markers+lines") || dataSeries.mode.includes("lines+markers")) {
@@ -293,12 +298,11 @@ function determineColorScaleStructure(dataSeries) {
         }
     }
 
-    return { dataSeries, colorscaleStructure, colorscale };
+    return { dataSeries, colorscaleStructure };
 }
 
-function applyColorScale(dataSeries) {
-    const { dataSeries: updatedDataSeries, colorscaleStructure, colorscale } = determineColorScaleStructure(dataSeries);
 
+function applyColorScale(dataSeries) {
     function cleanColorValues(listOfValues, variableStringForWarning) {
         if (listOfValues.includes(null)) {
             console.warn(`Warning: A colorscale based on ${variableStringForWarning} was requested. None values were found. They are being replaced with 0 values. It is recommended to provide data without None values.`);
@@ -309,32 +313,32 @@ function applyColorScale(dataSeries) {
 
     // Apply colorscale based on structure type
     if (colorscaleStructure === "bubble" || colorscaleStructure === "scatter3d") {
-        updatedDataSeries.marker.colorscale = "viridis_r"; // Apply default colorscale
-        updatedDataSeries.marker.showscale = true;
-        if (updatedDataSeries.z) {
-            updatedDataSeries.marker.color = cleanColorValues(updatedDataSeries.z, "z");
-        } else if (updatedDataSeries.z_points) {
-            updatedDataSeries.marker.color = cleanColorValues(updatedDataSeries.z_points, "z_points");
+        //updatedDataSeries.marker.colorscale = "viridis_r"; // Apply default colorscale
+        dataSeries.marker.showscale = true;
+        if (dataSeries.z) {
+            dataSeries.marker.color = cleanColorValues(dataSeries.z, "z");
+        } else if (dataSeries.z_points) {
+            dataSeries.marker.color = cleanColorValues(dataSeries.z_points, "z_points");
         }
     } else if (colorscaleStructure === "mesh3d") {
-        updatedDataSeries.colorscale = "viridis_r"; // Apply default colorscale
-        updatedDataSeries.showscale = true;
-        if (updatedDataSeries.z) {
-            updatedDataSeries.intensity = cleanColorValues(updatedDataSeries.z, "z");
-        } else if (updatedDataSeries.z_points) {
-            updatedDataSeries.intensity = cleanColorValues(updatedDataSeries.z_points, "z_points");
+        //updatedDataSeries.colorscale = "viridis_r"; // Apply default colorscale
+        dataSeries.showscale = true;
+        if (dataSeries.z) {
+            dataSeries.intensity = cleanColorValues(dataSeries.z, "z");
+        } else if (dataSeries.z_points) {
+            dataSeries.intensity = cleanColorValues(dataSeries.z_points, "z_points");
         }
     } else if (colorscaleStructure === "marker") {
-        updatedDataSeries.marker.colorscale = colorscale;
-        updatedDataSeries.marker.showscale = true;
-        updatedDataSeries.marker.color = cleanColorValues(updatedDataSeries.y, "y");
+        dataSeries.marker.colorscale = colorscale;
+        dataSeries.marker.showscale = true;
+        dataSeries.marker.color = cleanColorValues(dataSeries.y, "y");
     } else if (colorscaleStructure === "line") {
-        updatedDataSeries.line.colorscale = colorscale;
-        updatedDataSeries.line.showscale = true;
-        updatedDataSeries.line.color = cleanColorValues(updatedDataSeries.y, "y");
+        dataSeries.line.colorscale = colorscale;
+        dataSeries.line.showscale = true;
+        dataSeries.line.color = cleanColorValues(dataSeries.y, "y");
     }
 
-    return updatedDataSeries;
+    return dataSeries;
 }
 
 
