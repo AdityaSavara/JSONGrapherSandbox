@@ -926,7 +926,7 @@
         });
 
       // This function is called the user drops a file or upload it via the input button or drag and drop
-      function loadAndPlotData(event, eventType) {
+      async function loadAndPlotData(event, eventType) {
         // Checks if the file is dropped and if it is uploaded via the input button and gets the file
         // STEP 1: User selects a file from computer or drops a file on the browser
         const file =
@@ -937,7 +937,7 @@
         const reader = new FileReader();
         reader.fileName = file.name;
         // Waits for the file to be loaded
-        reader.addEventListener("load", (event) => {
+        reader.addEventListener("load", async (event) => {
           // Get the loaded data from the reader
           const dataLoaded = event.target.result;
           document.getElementById("file-selector").value = "";
@@ -958,56 +958,62 @@
 
           // Checking if the uploaded data is valid against the schema
           // STEP 3: Check if the jsonified object is a valid JSON file against the schema
-          getSchemaType(jsonified).then(([schema_type, schema_template]) => {
-            if (Object.keys(schema_type).length === 0) {
-              errorDiv.innerText +=
-                "Schema check: There was no Schema specific to this DataType, or the schema was not compatible. The default scatter plot schema was used.\n";
-              schema_type = schema;
-            }
+          const [schema_type, schema_template] = await getSchemaType(jsonified);
 
-            // validate the json
-            const validate = ajv.compile(schema_type);
-            const valid = validate(jsonified);
+          if (Object.keys(schema_type).length === 0) {
+            errorDiv.innerText +=
+              "Schema check: There was no Schema specific to this DataType, or the schema was not compatible. The default scatter plot schema was used.\n";
+            schema_type = schema;
+          }
 
-            if (!valid) {
-              // Console log an error if the data is not valid against the schema
-              console.log("validate errors: ", JSON.stringify(validate.errors));
-              // Display an error message if the data is not valid against the schema
-              errorDiv.innerText += `Json file does not match the schema. ${JSON.stringify(
-                validate.errors
-              )}\n`;
-              errorDiv.innerText += `Json file does not match the schema. ${JSON.stringify(
-                validate.errors
-              )}\n`;
-            } else {
-              let _jsonified = jsonified;
-              if (Object.keys(schema_template).length !== 0) {
-                _jsonified = mergeObjects(jsonified, schema_template);
-              }
-              // If the data is valid against the schema, then we can proceed to the next step
-              // if necessary create download button with json
-              // STEP 4 and STEP 5 is done in the prepareForPlotting function
-              prepareForPlotting(_jsonified, recentFileName).then((res) => {
-                // STEP 6: Provide file with converted units for download as JSON and CSV by buttons
-                appendDownloadButtons(res.downloadData, res.fileName);
-                // STEP 7: The plotly template is rendered on the browser
-                plot_with_plotly(res.data);
-              });
+          // validate the json
+          const validate = ajv.compile(schema_type);
+          const valid = validate(jsonified);
+
+          if (!valid) {
+            // Console log an error if the data is not valid against the schema
+            console.log("validate errors: ", JSON.stringify(validate.errors));
+            // Display an error message if the data is not valid against the schema
+            errorDiv.innerText += `Json file does not match the schema. ${JSON.stringify(
+              validate.errors
+            )}\n`;
+            errorDiv.innerText += `Json file does not match the schema. ${JSON.stringify(
+              validate.errors
+            )}\n`;
+          } else {
+            let _jsonified = jsonified;
+            console.log("Index.html _jsonified right before merge with schema template", _jsonified.data);
+            if (Object.keys(schema_template).length !== 0) {
+              _jsonified = mergeObjects(jsonified, schema_template);
             }
-          });
+            // If the data is valid against the schema, then we can proceed to the next step
+            // if necessary create download button with json
+            // STEP 4 and STEP 5 is done in the prepareForPlotting function
+            console.log("Index.html _jsonified right before prepareForPlotting", _jsonified.data);
+            const res = await prepareForPlotting(_jsonified, recentFileName);
+            // STEP 6: Provide file with converted units for download as JSON and CSV by buttons
+            appendDownloadButtons(res.downloadData, res.fileName);
+            // STEP 7: The plotly template is rendered on the browser
+            plot_with_plotly(res.data);
+          }
         });
         reader.readAsText(file);
       }
 
+
       // This a function that plots the data on the graph
       function prepareForPlotting(jsonified, filename) {
+        console.log("In index.html, top of prepareForPlotting, here is jsonified", jsonified.data);
         return new Promise(async (resolve, reject) => {
           try {
             // Checks if the Jsonified is the first file uploaded
             if (!globalData) {
               let _jsonified = JSON.parse(JSON.stringify(jsonified));
               globalData = _jsonified;
-
+              console.log("In index.html, top of prepareForPlotting, here is globalData", globalData.data);
+              console.log("In index.html, top of prepareForPlotting, here is _jsonified", globalData.data);
+              console.log("In index.html, top of prepareForPlotting, here is jsonified", globalData.data);
+              
               // Get the unit from the label
               const xUnit = getUnitFromLabel(globalData.layout.xaxis.title.text);
               const yUnit = getUnitFromLabel(globalData.layout.yaxis.title.text);
@@ -1017,6 +1023,7 @@
                 x: xUnit,
                 y: yUnit,
               };
+              console.log("In index.html, prepareForPlotting, here is globalData before STEP4", globalData.data);
               // STEP 4: Check if the object has a dataSet that has a simulate key in it, and runs the simulate function based on the value provided in the key model
               // Iterate through the dataset and check if there is a simulation to run for each dataset
               for (const dataSet of globalData.data) {
@@ -1047,7 +1054,7 @@
                   // There is  no STEP 5 at this line, because the first dataset provided by the user is used to define the units of GlobalData.
                 }
               }
-
+              console.log("In index.html, prepareForPlotting, here is globalData before line 1050 resolve", globalData.data);
               //Finally, return the objects that have been prepared for plotting an downloading.
               resolve({
                 data: globalData,
@@ -1125,6 +1132,8 @@
                   ...convertedJsonified.data,
                 ];
                 //Finally, return the objects that have been prepared for plotting an downloading.
+                console.log("In index.html, prepareForPlotting, here is globalData", globalData);
+                console.log("In index.html, prepareForPlotting, here is convertedJsonified", globalData);
                 resolve({
                   data: globalData,
                   downloadData: convertedJsonified,

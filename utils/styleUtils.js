@@ -109,6 +109,7 @@ function applyTraceStylesCollectionToPlotlyDict(figDict, traceStylesCollection =
         traceStylesCollectionName = traceStylesCollection.name;
     }
 
+    console.log("IN styleUtils.js applyTraceStylesCollectionToPlotlyDict before applyTraceStyleToSingleDataSeries", figDict.data)
     if (figDict.data && Array.isArray(figDict.data)) {
         figDict.data = figDict.data.map(trace => 
             applyTraceStyleToSingleDataSeries(trace, traceStylesCollection, traceStyleToApply)
@@ -430,7 +431,7 @@ function applyLayoutStyleToPlotlyDict(figDict, layoutStyleToApply = "default") {
     // Apply style dictionary to create a fresh layout object //using JSON to create a deep cpoy of the styleDict.layout
     const newLayout = structuredClone(styleDict.layout);
     console.log("inside styleUtils.js in applyLayoutStyleToPlotlyDict new layout before adding things back in", JSON.parse(JSON.stringify(newLayout)));
-    console.log("inside styleUtils.js in applyLayoutStyleToPlotlyDict before applying style", figDict.layout)
+    console.log("inside styleUtils.js in applyLayoutStyleToPlotlyDict, data before applying style", figDict.data)
     // Restore non-cosmetic fields
     if (nonCosmeticFields["title.text"] != null) {
         newLayout.title = newLayout.title || {}; // Ensure title exists
