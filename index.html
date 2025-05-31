@@ -627,9 +627,16 @@
           let copyForPlotly = JSON.parse(JSON.stringify(globalData)); // Plotly mutates the input
           
           // Replace superscripts in some fields for Plotly
-          copyForPlotly.layout.yaxis.title.text = replaceSuperscripts(copyForPlotly.layout.yaxis.title?.text ?? "");
-          copyForPlotly.layout.xaxis.title.text = replaceSuperscripts(copyForPlotly.layout.xaxis.title?.text ?? "");
-
+          console.log("index.html before the replace superscripts", copyForPlotly.layout)
+          if (copyForPlotly.layout.scene) {
+            copyForPlotly.layout.scene.yaxis.title.text = replaceSuperscripts(copyForPlotly.layout.scene.yaxis.title?.text ?? "");
+            copyForPlotly.layout.scene.xaxis.title.text = replaceSuperscripts(copyForPlotly.layout.scene.xaxis.title?.text ?? "");
+          } else {
+            copyForPlotly.layout.yaxis.title.text = replaceSuperscripts(copyForPlotly.layout.yaxis.title?.text ?? "");
+            copyForPlotly.layout.xaxis.title.text = replaceSuperscripts(copyForPlotly.layout.xaxis.title?.text ?? "");
+          }
+          console.log("index.html after the replace superscripts layout", copyForPlotly.layout)
+          console.log("index.html after the replace superscripts data", copyForPlotly.data)
           // Ensure Plotly is available before calling newPlot
           if (typeof Plotly !== "undefined") {
               Plotly.newPlot("plotlyDiv", copyForPlotly.data, copyForPlotly.layout);
