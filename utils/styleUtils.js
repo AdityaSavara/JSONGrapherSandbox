@@ -124,6 +124,7 @@ function applyTraceStylesCollectionToPlotlyDict(figDict, traceStylesCollection =
 }
 
 function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "", traceStyleToApply = "") {
+    console.log("styleUtils.js right at start of applyTraceStyleToSingleDataSeries", dataSeries);
     /**
      * Applies predefined styles to a single Plotly data series while preserving relevant fields.
      *
@@ -216,9 +217,9 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
     if (traceStyle === "") {
         traceStyle = Object.keys(stylesCollectionDict)[0]; // Take the first traceStyle name in the styleDict
     }
-
+    console.log("styleUtils.js right before determineColorScaleStructure", dataSeries);
     ({ dataSeries, colorscaleStructure, colorscale } = determineColorScaleStructure(dataSeries));
-
+    console.log("styleUtils.js right after determineColorScaleStructure", dataSeries);
     // Apply type and other predefined settings
     dataSeries.type = traceStyle?.type;
 
@@ -250,7 +251,7 @@ function determineColorScaleStructure(dataSeries) {
             [traceStyle, colorscale] = traceStyle.split("__");
         }
     }
-
+    console.log("styleUtils.js, determineColorScaleStructure before if bubble", dataSeries)
     // 3D and bubble plots have a colorscale by default
     if (traceStyle === "bubble") {
         dataSeries = prepareBubbleSizes(dataSeries);
@@ -360,7 +361,7 @@ function prepareBubbleSizes(dataSeries) {
     } else if (dataSeries.z) {
         dataSeries.text = dataSeries.z;
     }
-
+    console.log("styleUtils.js, DataSeries at end of PrepareBubbleSizes", dataSeries)
     return dataSeries;
 }
 

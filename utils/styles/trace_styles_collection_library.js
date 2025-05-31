@@ -61,12 +61,12 @@ const trace_styles_collection_library = {
         scatter3d: {
             mode: "markers",
             type: "scatter3d",
-            marker: { color: "", colorscale: "rainbow", showscale: true }
+            marker: { color: "", colorscale: "Jet", showscale: true }
         },
         mesh3d: {
             type: "mesh3d",
             intensity: [],
-            colorscale: "rainbow",
+            colorscale: "Jet",
             showscale: true
         },
         heatmap: {
