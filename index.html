@@ -617,10 +617,10 @@
 
           // Parse the plot style
           plotStyle = parsePlotStyle(plotStyle);
-          console.log("Index.html before applyPlotStyleToPlotlyDict", figDict)
+          console.log("Index.html before applyPlotStyleToPlotlyDict", copyJson(figDict));
           // Apply the plot style
           figDict = applyPlotStyleToPlotlyDict(figDict, plotStyle);
-          console.log("Index.html after applyPlotStyleToPlotlyDict", figDict)
+          console.log("Index.html after applyPlotStyleToPlotlyDict", copyJson(figDict));
           // Clean out the fields and make a Plotly object
           figDict = cleanJsonFigDict(figDict, ["simulate", "custom_units_chevrons", "equation", "trace_style", "3d_axes", "bubble", "superscripts"]);
 
