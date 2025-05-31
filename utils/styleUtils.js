@@ -151,8 +151,9 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
         dataSeries.trace_style = traceStyleToApply;
     } else {
         let traceStyle = dataSeries.trace_style || "";
-
+        console.log("styleUtils.js right before none check, dataSeries", copyJson(dataSeries));
         // If "none", return unchanged
+        console.log("styleUtils.js right before none check, traceStyle", traceStyle);
         if (String(traceStyle).toLowerCase() === "none") {
             return dataSeries;
         }

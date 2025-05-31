@@ -40,7 +40,7 @@ const trace_styles_collection_library = {
             mode: "markers",
             marker: {
                 color: "auto",
-                colorscale: "viridis_r",
+                colorscale: "Jet",
                 showscale: true
             }
         },
