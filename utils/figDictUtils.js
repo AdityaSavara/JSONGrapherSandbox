@@ -17,7 +17,6 @@ function cleanJsonFigDict(jsonFigDict, fieldsToUpdate = null) {
     }
 
     let figDict = jsonFigDict;
-    console.log("Inside figDictUtils, cleanJsonFigDict", jsonFigDict)
     if (fieldsToUpdate.includes("title_field")) {
         figDict = updateTitleField(figDict);
     }
@@ -280,7 +279,6 @@ function removeSimulateField(jsonFigDict) {
      * @param {Object} jsonFigDict - The figure dictionary.
      * @returns {Object} Updated figure dictionary without 'simulate' field.
      */
-    console.log("in figDictUtils.js", jsonFigDict)
     jsonFigDict.data.forEach(dataDict => {
         delete dataDict.simulate;
     });
