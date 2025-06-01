@@ -151,9 +151,7 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
         dataSeries.trace_style = traceStyleToApply;
     } else {
         let traceStyle = dataSeries.trace_style || "";
-        console.log("styleUtils.js right before none check, dataSeries", copyJson(dataSeries));
         // If "none", return unchanged
-        console.log("styleUtils.js right before none check, traceStyle", traceStyle);
         if (String(traceStyle).toLowerCase() === "none") {
             return dataSeries;
         }
@@ -206,7 +204,6 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
 
     // Get the appropriate style dictionary
     let stylesCollectionDict;
-    console.log("styleUtils.js seeking the  stylesCollectionDict named.", copyJson(traceStylesCollection));
     if (typeof traceStylesCollection === "object") {
         stylesCollectionDict = traceStylesCollection; // Use custom style directly
     } else {
@@ -216,10 +213,8 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
             stylesCollectionDict = stylesAvailable["default"] || {};
         }
     }
-    console.log("styleUtils.js actually received the  stylesCollectionDict :", copyJson(stylesCollectionDict));
     // Determine the traceStyle, defaulting to the first item in a given style if none is provided
     let traceStyle = traceStyleToApply || dataSeries.trace_style || "";
-    console.log("styleUtils.js after traceStyle taken from traceStylesCollection.", copyJson(traceStyle));;
     if (traceStyle === "") {
         traceStyle = Object.keys(stylesCollectionDict)[0]; // Take the first traceStyle name in the styleDict
     }
@@ -233,11 +228,7 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
         }
     }
 
-    console.log("styleUtils.js right before determineColorScaleStructure", copyJson(dataSeries));
-    ({ dataSeries, colorscaleStructure} = determineColorScaleStructureFirstHalf(dataSeries, traceStyle, colorscale));
-    console.log("styleUtils.js right after determineColorScaleStructure", colorscaleStructure); 
-    console.log("styleUtils.js right after determineColorScaleStructure", copyJson(dataSeries));  
-    
+    ({ dataSeries, colorscaleStructure} = determineColorScaleStructureFirstHalf(dataSeries, traceStyle, colorscale));  
     
     if (traceStyle in stylesCollectionDict) {
         traceStyle = stylesCollectionDict[traceStyle];
@@ -249,7 +240,6 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
 
     // Apply type and other predefined settings
     dataSeries.type = traceStyle?.type;
-    console.log("StyleUtils.js, style dict Before loop", copyJson(traceStyle));
     for (const [key, value] of Object.entries(traceStyle)) {
         if (key !== "type") {
             if (typeof value === "object" && value !== null) { // Ensure value is an object
@@ -265,23 +255,17 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
     if ((colorscale !== "") && (colorscaleStructure === "")) {
         ({ dataSeries, colorscaleStructure } = determineColorScaleStructureSecondHalf(dataSeries, traceStyle, colorscale));
     }
-
-    console.log("This is in styleUtil.js after the loop", copyJson(dataSeries));
-
     dataSeries = applyColorScale(dataSeries, colorscale, colorscaleStructure);
-
     return dataSeries;
 }
 
 function determineColorScaleStructureFirstHalf(dataSeries, traceStyle, colorscale) {
     let colorscaleStructure = ""; // Initialize variable for later use
 
-    console.log("styleUtils.js, determineColorScaleStructure before if bubble", copyJson(dataSeries));
     // 3D and bubble plots have a colorscale by default
     if (traceStyle === "bubble") {
         dataSeries = prepareBubbleSizes(dataSeries);
         colorscaleStructure = "bubble";
-        console.log("styleUtils.js right after prepareBubbleSizes", dataSeries);
     } else if (traceStyle === "mesh3d") {
         colorscaleStructure = "mesh3d";
     } else if (traceStyle === "scatter3d") {
@@ -311,15 +295,12 @@ function applyColorScale(dataSeries, colorscale, colorscaleStructure) {
         }
         return listOfValues;
     }
-    console.log("styleUtils.js applyColorScale dataSeries before bubble area", copyJson(colorscaleStructure));
-    console.log("styleUtils.js applyColorScale dataSeries before bubble area", copyJson(dataSeries));
     // Apply colorscale based on structure type
     if (colorscaleStructure === "bubble" || colorscaleStructure === "scatter3d") {
         if (colorscale !== ""){ //if the colorscale is not an empty string, that means the user has supplied a colorscale.
             dataSeries.marker.colorscale = colorscale; 
             }
         dataSeries.marker.showscale = true;
-        console.log("styleUtils.js applyColorScale dataSeries in bubble area", copyJson(dataSeries));
         if (dataSeries.z) {
             dataSeries.marker.color = cleanColorValues(dataSeries.z, "z");
         } else if (dataSeries.z_points) {
@@ -392,7 +373,6 @@ function prepareBubbleSizes(dataSeries) {
     } else if (dataSeries.z) {
         dataSeries.text = dataSeries.z;
     }
-    console.log("styleUtils.js, DataSeries at end of PrepareBubbleSizes", copyJson(dataSeries))
     return dataSeries;
 }
 
@@ -444,7 +424,6 @@ function applyLayoutStyleToPlotlyDict(figDict, layoutStyleToApply = "default") {
 
     // Ensure layout exists in the figure
     figDict.layout = figDict.layout || {};
-    console.log("inside styleUtils.js in applyLayoutStyleToPlotlyDict style itself before applying style", JSON.parse(JSON.stringify(styleDict.layout)));
 
     // Extract non-cosmetic fields
     const nonCosmeticFields = {
@@ -460,23 +439,17 @@ function applyLayoutStyleToPlotlyDict(figDict, layoutStyleToApply = "default") {
 
     // Apply style dictionary to create a fresh layout object //using JSON to create a deep cpoy of the styleDict.layout
     const newLayout = structuredClone(styleDict.layout);
-    console.log("inside styleUtils.js in applyLayoutStyleToPlotlyDict new layout before adding things back in", JSON.parse(JSON.stringify(newLayout)));
-    console.log("inside styleUtils.js in applyLayoutStyleToPlotlyDict, data before applying style", JSON.parse(JSON.stringify(figDict.data)));
     // Restore non-cosmetic fields
     if (nonCosmeticFields["title.text"] != null) {
         newLayout.title = newLayout.title || {}; // Ensure title exists
         newLayout.title.text = nonCosmeticFields["title.text"];
     }
 
-    console.log("inside styleUtils.js in applyLayoutStyleToPlotlyDict new layout right before x axis line", JSON.parse(JSON.stringify(newLayout)));
-
     if (nonCosmeticFields["xaxis.title.text"] != null) {
         newLayout.xaxis = newLayout.xaxis || {}; // Ensure xaxis exists
         newLayout.xaxis.title = newLayout.xaxis.title || {}; // Ensure title exists
         newLayout.xaxis.title.text = nonCosmeticFields["xaxis.title.text"];
     }
-
-    console.log("inside styleUtils.js in applyLayoutStyleToPlotlyDict new layout right after x axis line", JSON.parse(JSON.stringify(newLayout)));
 
     if (nonCosmeticFields["yaxis.title.text"] != null) {
         newLayout.yaxis = newLayout.yaxis || {}; // Ensure yaxis exists
@@ -498,13 +471,10 @@ function applyLayoutStyleToPlotlyDict(figDict, layoutStyleToApply = "default") {
 
 
 
-    console.log("inside styleUtils.js in applyLayoutStyleToPlotlyDict new layout after adding things back in", JSON.parse(JSON.stringify(newLayout)));
     // Assign the new layout back into the figure dictionary
     figDict.layout = newLayout;
-    console.log("inside styleUtils.js in applyLayoutStyleToPlotlyDict after applying style", JSON.parse(JSON.stringify(figDict.layout)));
     // Update figDict to signify the new layout style used
     figDict.plot_style = figDict.plot_style || {};
     figDict.plot_style.layout_style = layoutStyleToApplyName;
-    console.log("Inside styleUtils.js, applyLayoutStyleToPlotlyDict", copyJson(figDict));
     return figDict;
 }
