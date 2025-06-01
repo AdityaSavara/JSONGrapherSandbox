@@ -607,7 +607,6 @@
 
       // A function that visualizes the data with plotly
       function plot_with_plotly(globalData) {
-        console.log("Index.html at top of plot_with_plotly", globalData)  
         let figDict = globalData; // Ensure figDict is declared
         let plotStyle = { layout_style: "", trace_styles_collection: "" };
 
@@ -617,17 +616,14 @@
 
           // Parse the plot style
           plotStyle = parsePlotStyle(plotStyle);
-          console.log("Index.html before applyPlotStyleToPlotlyDict", copyJson(figDict));
           // Apply the plot style
           figDict = applyPlotStyleToPlotlyDict(figDict, plotStyle);
-          console.log("Index.html after applyPlotStyleToPlotlyDict", copyJson(figDict));
           // Clean out the fields and make a Plotly object
           figDict = cleanJsonFigDict(figDict, ["simulate", "custom_units_chevrons", "equation", "trace_style", "3d_axes", "bubble", "superscripts"]);
 
           let copyForPlotly = JSON.parse(JSON.stringify(globalData)); // Plotly mutates the input
           
           // Replace superscripts in some fields for Plotly
-          console.log("index.html before the replace superscripts", copyForPlotly.layout)
           if (copyForPlotly.layout.scene) {
             copyForPlotly.layout.scene.yaxis.title.text = replaceSuperscripts(copyForPlotly.layout.scene.yaxis.title?.text ?? "");
             copyForPlotly.layout.scene.xaxis.title.text = replaceSuperscripts(copyForPlotly.layout.scene.xaxis.title?.text ?? "");
@@ -635,12 +631,9 @@
             copyForPlotly.layout.yaxis.title.text = replaceSuperscripts(copyForPlotly.layout.yaxis.title?.text ?? "");
             copyForPlotly.layout.xaxis.title.text = replaceSuperscripts(copyForPlotly.layout.xaxis.title?.text ?? "");
           }
-          console.log("index.html after the replace superscripts layout", copyForPlotly.layout)
-          console.log("index.html after the replace superscripts data", copyForPlotly.data)
           // Ensure Plotly is available before calling newPlot
           if (typeof Plotly !== "undefined") {
               Plotly.newPlot("plotlyDiv", copyForPlotly.data, copyForPlotly.layout);
-              console.log("After Plotting", copyForPlotly.data)
           } else {
               console.error("Plotly is not loaded.");
           }
@@ -982,14 +975,12 @@
             )}\n`;
           } else {
             let _jsonified = jsonified;
-            console.log("Index.html _jsonified right before merge with schema template", _jsonified.data);
             if (Object.keys(schema_template).length !== 0) {
               _jsonified = mergeObjects(jsonified, schema_template);
             }
             // If the data is valid against the schema, then we can proceed to the next step
             // if necessary create download button with json
             // STEP 4 and STEP 5 is done in the prepareForPlotting function
-            console.log("Index.html _jsonified right before prepareForPlotting", _jsonified.data);
             const res = await prepareForPlotting(_jsonified, recentFileName);
             // STEP 6: Provide file with converted units for download as JSON and CSV by buttons
             appendDownloadButtons(res.downloadData, res.fileName);
@@ -1003,15 +994,12 @@
 
       // This a function that plots the data on the graph
       function prepareForPlotting(jsonified, filename) {
-        console.log("In index.html, top of prepareForPlotting, here is jsonified", jsonified.data);
         return new Promise(async (resolve, reject) => {
           try {
             // Checks if the Jsonified is the first file uploaded
             if (!globalData) {
               let _jsonified = JSON.parse(JSON.stringify(jsonified));
               globalData = _jsonified;
-              console.log("In index.html, top of prepareForPlotting, here is _jsonified", JSON.parse(JSON.stringify(_jsonified.data)));
-              console.log("In index.html, top of prepareForPlotting, here is jsonified", JSON.parse(JSON.stringify(jsonified)));
               
               // Get the unit from the label
               const xUnit = getUnitFromLabel(globalData.layout.xaxis.title.text);
@@ -1022,7 +1010,6 @@
                 x: xUnit,
                 y: yUnit,
               };
-              console.log("In index.html, prepareForPlotting, here is globalData before STEP4", JSON.parse(JSON.stringify(globalData.data)));
               // STEP 4: Check if the object has a dataSet that has a simulate key in it, and runs the simulate function based on the value provided in the key model
               // Iterate through the dataset and check if there is a simulation to run for each dataset
               for (const dataSet of globalData.data) {
@@ -1053,7 +1040,6 @@
                   // There is  no STEP 5 at this line, because the first dataset provided by the user is used to define the units of GlobalData.
                 }
               }
-              console.log("In index.html, prepareForPlotting, here is globalData before line 1050 resolve", JSON.parse(JSON.stringify(globalData.data)));
               //Finally, return the objects that have been prepared for plotting an downloading.
               resolve({
                 data: globalData,
@@ -1131,8 +1117,6 @@
                   ...convertedJsonified.data,
                 ];
                 //Finally, return the objects that have been prepared for plotting an downloading.
-                console.log("In index.html, prepareForPlotting, here is globalData", globalData);
-                console.log("In index.html, prepareForPlotting, here is convertedJsonified", globalData);
                 resolve({
                   data: globalData,
                   downloadData: convertedJsonified,
