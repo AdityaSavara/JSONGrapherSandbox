@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math.js Unit Solver</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>
+</head>
+<body>
+    <h2>Math.js Unit Solver</h2>
+    <p id="output">Computing result... open inspect and console to check log.</p>
+
+    <script>
+        function parseVariable(variableString) {
+            // Split numeric part and unit
+            const match = variableString.match(/([\d.]+)\s*(.*)/);
+            if (!match) throw new Error("Invalid variable format.");
+
+            const numericValue = parseFloat(match[1]);
+            const unit = match[2].trim();
+
+            return math.multiply(numericValue, math.unit(unit)); // Combine number and unit properly
+        }
+
+        // Independent variables with correct parsing
+        const independentVariables = {
+            x: parseVariable("2 m/s" ),
+            y: parseVariable("3 meter")
+        };
+
+        // Equation
+        const equationString = "x * t + y = 10 m";
+        const [lhs, rhs] = equationString.split("=").map(side => side.trim());
+        const dependentVariable = "t"; // Solving for t
+
+        // Convert RHS into a unit-aware Math.js object
+        const rhsValue = parseVariable(rhs);
+
+        // Solve for t: Rearranging equation → t = (rhs - y) / x
+        const tSolution = math.divide(math.subtract(rhsValue, independentVariables.y), independentVariables.x);
+
+        // Display result
+        document.getElementById("output").textContent = `Computed t: ${tSolution.toString()}`;
+
+        function detectAndFormatUnits(equationStr) {
+            // Regular expression to detect standalone numbers followed by units
+            const pattern = /(\d+(\.\d+)?)\s*([a-zA-Z]+)/g;
+
+            // Explanation of regular expression parts:
+            // (\d+(\.\d+)?)
+            //     \d+ → Matches one or more digits (e.g., "10", "100", "3").
+            //     (\.\d+)? → Matches optional decimal values (e.g., "10.5", "3.14").
+            //     This entire part captures numerical values, whether integers or decimals.
+            // \s*
+            //     Matches zero or more spaces between the number and the unit.
+            //     Ensures flexibility in formatting (e.g., "10m" vs. "10 m").
+            // ([a-zA-Z]+)
+            //     Matches one or more alphabetical characters, capturing the unit symbol.
+            //     Ensures that only valid unit names (e.g., "m", "s", "kg") are recognized.
+            // Example Matches:
+            //     "10 m"   → ("10", "", "m")
+            //     "3.5 kg" → ("3.5", ".5", "kg")
+            //     "100s"   → ("100", "", "s")
+
+            // Create a temporary variable to store the transformed equation
+            let formattedEquation = equationStr.replace(pattern, (match, magnitude, _, unit) => {
+                let result = match; // Default to original match in case of errors
+                console.log("Right before the match is used", match, magnitude, unit, "Type:", typeof match);
+                try {
+                    // Format as "magnitude unit" instead of using math.unit()
+                    // const quantity = math.unit(`${magnitude} ${unit}`); // Commented out
+                    console.log("Right after the match is used", `${magnitude} ${unit}`, "Type:", typeof magnitude);
+                    result = `(${magnitude} ${unit})`;
+                } catch {
+                    // No assignment needed, `result` already defaults to `match`
+                }
+                return result;
+            });
+
+            // Return the final transformed equation
+            console.log("Right before returning the formattedEquation.", formattedEquation);
+            return formattedEquation;
+        }
+
+
+        function parseEquation(equationStr, variables) {
+            // Sort variable names by length in descending order to avoid partial replacements
+            const variablesSortedByName = Object.entries(variables).sort((a, b) => b[0].length - a[0].length);
+
+            // Replace constants first
+            variablesSortedByName.forEach(([varName, varValue]) => {
+                if (typeof varValue !== 'object' || !varValue.units) {
+                    equationStr = equationStr.replace(new RegExp(`\\b${varName}\\b`, 'g'), String(varValue));
+                }
+            });
+
+            // Replace variables with magnitudes and units, formatting as "value unit"
+            variablesSortedByName.forEach(([varName, varValue]) => {
+                if (typeof varValue === 'object' && varValue.units) {
+                    try {
+                        // Format variable as "value unit" instead of using math.unit()
+                        // const unitValue = math.unit(`${varValue.value} ${varValue.units}`); // Commented out
+                        equationStr = equationStr.replace(new RegExp(`\\b${varName}\\b`, 'g'), `(${varValue.value} ${varValue.units})`);
+                    } catch {
+                        console.warn(`Invalid unit conversion for variable: ${varName}`);
+                    }
+                }
+            });
+
+            // Detect and format standalone numbers with units
+            console.log("right before detectAndFormatUnits", equationStr);
+            equationStr = detectAndFormatUnits(equationStr);
+
+            return equationStr;
+        }
+
+        // Example usage
+        const variables = {
+            "x": { value: 2, units: "m / s" },
+            "y": { value: 3, units: "meter" }
+        };
+
+        const equation = "(10 m - y) / x"; // Rearranged equation for solving "t"
+        const equation_output = parseEquation(equation, variables);
+        const evaluated_equation = math.evaluate(equation_output);
+
+        console.log(evaluated_equation); // Outputs the calculated value of t
+        console.log("output to string...", String(evaluated_equation)); // Outputs the calculated value of t
+
+        
+
+
+        </script>
+</body>
+</html>
