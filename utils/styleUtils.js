@@ -113,7 +113,6 @@ function applyTraceStylesCollectionToPlotlyDict(figDict, traceStylesCollection =
         traceStylesCollectionName = traceStylesCollection.name;
     }
 
-    console.log("IN styleUtils.js applyTraceStylesCollectionToPlotlyDict before applyTraceStyleToSingleDataSeries", copyJson(figDict.data))
     if (figDict.data && Array.isArray(figDict.data)) {
         figDict.data = figDict.data.map(trace => 
             applyTraceStyleToSingleDataSeries(trace, traceStylesCollection, traceStyleToApply)
@@ -129,7 +128,6 @@ function applyTraceStylesCollectionToPlotlyDict(figDict, traceStylesCollection =
 }
 
 function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "", traceStyleToApply = "") {
-    console.log("styleUtils.js right at start of applyTraceStyleToSingleDataSeries", dataSeries);
     /**
      * Applies predefined styles to a single Plotly data series while preserving relevant fields.
      *
