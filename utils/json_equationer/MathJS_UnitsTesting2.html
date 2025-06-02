@@ -11,6 +11,8 @@
     <p id="output">Computing result... open inspect and console to check log.</p>
 
     <script>
+        // ############## PART 1: GETTING EQUATION EVALUATION TO WORK #####################
+        
         function parseVariable(variableString) {
             // Split numeric part and unit
             const match = variableString.match(/([\d.]+)\s*(.*)/);
@@ -127,7 +129,95 @@
         console.log(evaluated_equation); // Outputs the calculated value of t
         console.log("output to string...", String(evaluated_equation)); // Outputs the calculated value of t
 
-        
+        // ############## PART 2: PARSING FULL EQUATION DICT #####################
+        function parseEquationDict(equationDict) {
+            function extractValueUnits(entry) {
+                const trimmedEntry = entry.trim(); // Remove leading/trailing whitespace
+                const splitEntry = trimmedEntry.split(" ", 2); // Split on the first space
+                if (splitEntry.length > 1) {
+                    const value = splitEntry[0];
+                    const units = splitEntry[1]; // Everything after the number
+                    return [value, units];
+                } else {
+                    return [parseFloat(splitEntry[0]), null]; // Handle constants without units
+                }
+            }
+
+            function extractConstants(constantsDict) {
+                const extractedConstants = {};
+                for (const [name, value] of Object.entries(constantsDict)) {
+                    extractedConstants[name] = extractValueUnits(value);
+                }
+                return extractedConstants;
+            }
+
+            function extractEquation(equationString) {
+                const variablesList = equationString.match(/[A-Za-z]+/g) || [];
+                return { equationString, variablesList };
+            }
+
+            const graphicalDimensionality = equationDict.hasOwnProperty("graphical_dimensionality")
+                ? equationDict["graphical_dimensionality"]
+                : 2;
+
+            const constantsExtractedDict = extractConstants(equationDict["constants"]);
+            const equationExtractedDict = extractEquation(equationDict["equation_string"]);
+
+            const xMatch = extractValueUnits(equationDict["x_variable"]);
+            const yMatch = extractValueUnits(equationDict["y_variable"]);
+            let zMatch = null;
+            if (graphicalDimensionality === 3) {
+                zMatch = extractValueUnits(equationDict["z_variable"]);
+            }
+
+            const xVariableExtractedDict = { label: xMatch[0], units: xMatch[1] };
+            const yVariableExtractedDict = { label: yMatch[0], units: yMatch[1] };
+            let zVariableExtractedDict = null;
+            if (graphicalDimensionality === 3) {
+                zVariableExtractedDict = { label: zMatch[0], units: zMatch[1] };
+            }
+
+            function prepareIndependentVariables(constantsExtractedDict) {
+                const independentVariablesDict = {};
+                for (const [name, [value, units]] of Object.entries(constantsExtractedDict)) {
+                    independentVariablesDict[name] = units ? `${value} ${units}` : `${value}`;
+                }
+                return independentVariablesDict;
+            }
+
+            const independentVariablesDict = prepareIndependentVariables(constantsExtractedDict);
+
+            if (graphicalDimensionality === 2) {
+                return [independentVariablesDict, constantsExtractedDict, equationExtractedDict, xVariableExtractedDict, yVariableExtractedDict];
+            } else if (graphicalDimensionality === 3) {
+                return [independentVariablesDict, constantsExtractedDict, equationExtractedDict, xVariableExtractedDict, yVariableExtractedDict, zVariableExtractedDict];
+            }
+        }
+
+        const equationDict = {
+                equation_string: "k = A*(e**((-Ea)/(R*T)))",
+                x_variable: "T (K)",  
+                y_variable: "k (s**(-1))",
+                constants: {
+                    Ea: "30000 (J)*(mol^(-1))",
+                    R: "8.314 (J)*(mol^(-1))*(K^(-1))",
+                    A: "1E13 (s**-1)",
+                    e: "2.71828"
+                },
+                num_of_points: 10,
+                x_range_default: [200, 500],
+                x_range_limits: [],
+                points_spacing: "Linear"
+            };
+
+        try {
+            const resultExtracted = parseEquationDict(equationDict);
+            console.log("Now extracting equation:");
+            console.log(resultExtracted);
+        } catch (error) {
+            console.log(`Error: ${error.message}`);
+        }
+
 
 
         </script>
