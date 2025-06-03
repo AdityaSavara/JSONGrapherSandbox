@@ -406,7 +406,8 @@ function generatePointsFromRangeDict(rangeDict, variableName = "x") {
     }
 
     // Generate points using the specified spacing method
-    return generatePointsBySpacing(rangeDict.num_of_points, rangeMin, rangeMax, rangeDict.points_spacing);
+    // Now using string literals directly within bracket notation for all accesses
+    return generatePointsBySpacing(rangeDict['num_of_points'], rangeMin, rangeMax, rangeDict['points_spacing']);
 }
 
 
