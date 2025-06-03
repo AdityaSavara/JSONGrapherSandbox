@@ -80,11 +80,11 @@
             // Create a temporary variable to store the transformed equation
             let formattedEquation = equationStr.replace(pattern, (match, magnitude, _, unit) => {
                 let result = match; // Default to original match in case of errors
-                console.log("Right before the match is used", match, magnitude, unit, "Type:", typeof match);
+                //console.log("Right before the match is used", match, magnitude, unit, "Type:", typeof match);
                 try {
                     // Format as "magnitude unit" instead of using math.unit()
                     // const quantity = math.unit(`${magnitude} ${unit}`); // Commented out
-                    console.log("Right after the match is used", `${magnitude} ${unit}`, "Type:", typeof magnitude);
+                    //console.log("Right after the match is used", `${magnitude} ${unit}`, "Type:", typeof magnitude);
                     result = `(${magnitude} ${unit})`;
                 } catch {
                     // No assignment needed, `result` already defaults to `match`
@@ -93,7 +93,6 @@
             });
 
             // Return the final transformed equation
-            console.log("Right before returning the formattedEquation.", formattedEquation);
             return formattedEquation;
         }
 
@@ -128,7 +127,6 @@
             });
 
             // Detect and format standalone numbers with units
-            console.log("right before detectAndFormatUnits", equationStr);
             equationStr = detectAndFormatUnits(equationStr);
 
             return equationStr;
@@ -183,7 +181,6 @@
         function solveEquation(equationString, independentVariablesValuesAndUnits, dependentVariable) {
         // Step 1: Replace any '**' with '^' for exponentiation.
         equationString = equationString.replace(/\*\*/g, '^');
-        console.log("equationString in solveEquation, near top.", equationString)
         // Step 2: Split the equation at '='.
         const parts = equationString.split('=');
         if (parts.length !== 2) {
@@ -206,7 +203,6 @@
         // This function replaces variable names with their "(value unit)" strings and internally calls detectAndFormatUnits.
         expressionToEvaluate = parseEquation(expressionToEvaluate, independentVariablesValuesAndUnits);
         
-        console.log("ExpressionToEvaluate in solveEquation", expressionToEvaluate)
         // Step 5: Build the evaluation scope for math.js.
         // For each independent variable, use parseVariable to convert its string (e.g., "2 m/s")
         // into a math.js Unit object. (Your parseVariable function should now call removeSuperscriptParentheses.)
@@ -219,7 +215,6 @@
         // Step 6: Evaluate the processed expression using math.js.
         //let result = math.evaluate(expressionToEvaluate, scope);
         let result = math.evaluate(expressionToEvaluate); //without scope
-        console.log("Result in solveEquation", result)
         // Return the result as an array (to mimic the Python version's list output).
         return [result];
         }
@@ -775,11 +770,19 @@
     // ---- End: Define independent variables ----
 
     // ---- Begin: Define the dependent variable and prepare to solve ----
-    const dependentVariable = (graphicalDimensionality === 2) ? yVariableExtractedDict.label : zVariableExtractedDict.label;
+    let dependentVariable;
+    if (graphicalDimensionality === 3) {
+        dependentVariable = zVariableExtractedDict.label;
+        let zUnits = "";  // initialized
+    } else {
+        dependentVariable = yVariableExtractedDict.label;
+        let yUnits = "";  // initialized
+    }
+
+
     let solvedCoordinatesList = [];
-    let yUnits = "";  // initialized
     let dependentVariableUnits = ""; // initialized
-    
+
     // For 2D, input_points_list is just xPoints.
     // For 3D, use Cartesian product of xPoints and yPoints.
     let inputPointsList;
@@ -795,7 +798,7 @@
     } else {
         throw new Error("Error: graphical_dimensionality not received and/or not evaluatable by current code.");
     }
-    
+    let firstDependentVariablePointWithUnits = null; //just initializing
     // Loop over each input point, solve the equation, and store the results.
     for (const currentPoint of inputPointsList) {
         // Set independent variable values (with units) for the current point.
@@ -809,27 +812,35 @@
         if (verbose) console.log("Evaluating point:", currentPoint);
     
         const dependentVariableSolutions = solveEquation(equationString, independentVariablesDict, dependentVariable);
-    
+   
         if (dependentVariableSolutions) {
-        for (const dependentVariablePointWithUnits of dependentVariableSolutions) {
-            console.log("In evaluate Equation Dict, dependentVariablePointWithUnits before split", dependentVariablePointWithUnits)
-            console.log("In evaluate Equation Dict, dependentVariablePointWithUnits.tostring() before split", dependentVariablePointWithUnits.toString())
-            const parts = dependentVariablePointWithUnits.toString().split(" ", 2);
-            const solutionValue = parseFloat(parts[0]);
-    
-            if (graphicalDimensionality === 2) {
-            solvedCoordinatesList.push([currentPoint, solutionValue]);
-            if (!dependentVariableUnits && parts.length > 1) {
-                yUnits = parts[1];
-            }
-            } else if (graphicalDimensionality === 3) {
-            solvedCoordinatesList.push([currentPoint[0], currentPoint[1], solutionValue]);
-            if (!dependentVariableUnits && parts.length > 1) {
-                var zUnits = parts[1];
-            }
+            for (const dependentVariablePointWithUnits of dependentVariableSolutions) {
+                //console.log("In evaluate Equation Dict, dependentVariablePointWithUnits before split", dependentVariablePointWithUnits);
+                //console.log("In evaluate Equation Dict, dependentVariablePointWithUnits.toString() before split", dependentVariablePointWithUnits.toString());
+
+                const dependentVariablePointWithUnitsAsArray = dependentVariablePointWithUnits.toString().split(" ", 2);
+                const solutionValue = parseFloat(dependentVariablePointWithUnitsAsArray[0]);
+                // Capture units only from the first evaluation (then skip after that)
+                if (!dependentVariableUnits && dependentVariablePointWithUnitsAsArray.length > 1) {
+                    dependentVariableUnits = math.unit(1, dependentVariablePointWithUnitsAsArray[1]); // Store 1 reference unit so we can divide by it in each iteration.
+                    console.log("In evaluate Equation Dict, dependentVariableUnits", dependentVariableUnits)
+                    firstDependentVariablePointWithUnits = dependentVariablePointWithUnits
+                    if (graphicalDimensionality === 2){yUnits=dependentVariableUnits}
+                    if (graphicalDimensionality === 3){zUnits=dependentVariableUnits}
+                }
+
+                // // Convert all subsequent iterations to match the first evaluation's units
+                let standardizedSolution = dependentVariablePointWithUnits;
+                standardizedSolution = math.divide(dependentVariablePointWithUnits, dependentVariableUnits);
+
+                if (graphicalDimensionality === 2) {
+                    solvedCoordinatesList.push([currentPoint, standardizedSolution]);
+                } else if (graphicalDimensionality === 3) {
+                    solvedCoordinatesList.push([currentPoint[0], currentPoint[1], standardizedSolution]);
+                }
             }
         }
-        }
+
     }
     // ---- End: Solve loop ----
 
@@ -856,8 +867,12 @@
         );
     }
     
-    // Convert units to proper format.
-    const formatUnits = unitStr => unitStr.includes("(") ? unitStr : `(${unitStr})`;
+    // Convert units to proper format and remove "1 " if present
+    const formatUnits = unitStr => {
+        let formatted = unitStr.toString().replace("1 ", ""); // Remove "1 " if it exists
+        return formatted.includes("(") ? formatted : `(${formatted})`;
+    };
+
     let xUnits = formatUnits(xVariableExtractedDict.units);
     if (graphicalDimensionality === 2) {
         yUnits = formatUnits(yUnits);
@@ -865,6 +880,7 @@
         yUnits = formatUnits(yVariableExtractedDict.units);
         zUnits = formatUnits(zUnits);
     }
+
     
     // Convert inverse units.
     yUnits = convertInverseUnits(yUnits);
