@@ -1,13 +1,13 @@
 function parseVariable(variableString) {
-// Split numeric part and unit using a regular expression.
-const match = variableString.match(/([\d.]+)\s*(.*)/);
-if (!match) throw new Error("Invalid variable format.");
+    // Split numeric part and unit using a regular expression.
+    const match = variableString.match(/([\d.]+)\s*(.*)/);
+    if (!match) throw new Error("Invalid variable format.");
 
-const numericValue = parseFloat(match[1]);
-const unit = match[2].trim();
+    const numericValue = parseFloat(match[1]);
+    const unit = match[2].trim();
 
-// Combine the numeric value with the parsed unit via math.js
-return math.multiply(numericValue, math.unit(unit));
+    // Combine the numeric value with the parsed unit via math.js
+    return math.multiply(numericValue, math.unit(unit));
 }
 
 function detectAndFormatUnits(equationStr) {
@@ -95,7 +95,7 @@ function parseEquation(equationStr, variables) {
  * @returns {string} The normalized unit string.
  */
 function removeSuperscriptParentheses(unitStr) {
-return unitStr.replace(/([a-zA-Z]+)\^\(([-+]?[0-9]*\.?[0-9]+)\)/g, '$1^$2');
+    return unitStr.replace(/([a-zA-Z]+)\^\(([-+]?[0-9]*\.?[0-9]+)\)/g, '$1^$2');
 }
 
 /**
@@ -426,17 +426,16 @@ function generatePointsFromRangeDict(rangeDict, variableName = "x") {
  * @returns {string} The units string with custom units wrapped in '<' and '>'.
  */
 function returnCustomUnitsMarkup(unitsString, customUnitsList) {
-console.log("returnCustomUnitsMarkup", customUnitsList);
     // Sort the custom_units_list from longest to shortest.
-const sortedCustomUnitsList = customUnitsList.slice().sort((a, b) => b.length - a.length);
-// For each custom unit, replace all occurrences in the string.
-for (const customUnit of sortedCustomUnitsList) {
-    // Escape special regex characters in the custom unit.
-    const escapedCustomUnit = customUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(escapedCustomUnit, 'g');
-    unitsString = unitsString.replace(regex, '<' + customUnit + '>');
-}
-return unitsString;
+    const sortedCustomUnitsList = customUnitsList.slice().sort((a, b) => b.length - a.length);
+    // For each custom unit, replace all occurrences in the string.
+    for (const customUnit of sortedCustomUnitsList) {
+        // Escape special regex characters in the custom unit.
+        const escapedCustomUnit = customUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escapedCustomUnit, 'g');
+        unitsString = unitsString.replace(regex, '<' + customUnit + '>');
+    }
+    return unitsString;
 }
 
 /**
@@ -449,17 +448,17 @@ return unitsString;
  * @returns {string[]} An array of unique tags (without the angle brackets), sorted by length descending.
  */
 function extractTaggedStrings(text) {
-const regex = /<(.*?)>/g;
-let match;
-const tags = [];
-// Loop through all matches of the pattern.
-while ((match = regex.exec(text)) !== null) {
-    tags.push(match[1]);
-}
-// Remove duplicates by using a Set, then sort from longest to shortest.
-const uniqueTags = Array.from(new Set(tags));
-uniqueTags.sort((a, b) => b.length - a.length);
-return uniqueTags;
+    const regex = /<(.*?)>/g;
+    let match;
+    const tags = [];
+    // Loop through all matches of the pattern.
+    while ((match = regex.exec(text)) !== null) {
+        tags.push(match[1]);
+    }
+    // Remove duplicates by using a Set, then sort from longest to shortest.
+    const uniqueTags = Array.from(new Set(tags));
+    uniqueTags.sort((a, b) => b.length - a.length);
+    return uniqueTags;
 }
 
 /**
@@ -532,261 +531,253 @@ function cleanBrackets(inputString) {
  *          x_points, y_points and, for 3D, z_units and z_points.
  * @throws {Error} If graphical dimensionality is not supported or missing.
  */
-function evaluateEquationDict(equationDict, verbose = false) {
-// Create a deep copy of the input dictionary to avoid modifying the original mutable object.
-equationDict = JSON.parse(JSON.stringify(equationDict));
+    function evaluateEquationDict(equationDict, verbose = false) {
+    // Create a deep copy of the input dictionary to avoid modifying the original mutable object.
+    equationDict = JSON.parse(JSON.stringify(equationDict));
 
-// ---- Begin: Block to extract the x_points (and y_points for 3D) needed ----
-let equationString = equationDict.equation_string; // Use the copied object
-// ... rest of your function logic would then use `equationDict`
-// If graphical_dimensionality is not provided, default to 2.
-let graphicalDimensionality = equationDict.graphical_dimensionality || 2;
-let graphicalDimensionalityAdded = !("graphical_dimensionality" in equationDict);
-equationDict.graphical_dimensionality = graphicalDimensionality;
+    // ---- Begin: Block to extract the x_points (and y_points for 3D) needed ----
+    let equationString = equationDict.equation_string; // Use the copied object
+    // ... rest of your function logic would then use `equationDict`
+    // If graphical_dimensionality is not provided, default to 2.
+    let graphicalDimensionality = equationDict.graphical_dimensionality || 2;
+    let graphicalDimensionalityAdded = !("graphical_dimensionality" in equationDict);
+    equationDict.graphical_dimensionality = graphicalDimensionality;
 
-// Allow override of verbose flag
-if (equationDict.verbose !== undefined) {
-    verbose = equationDict.verbose;
-}
-
-// Generate the x_points range; for 3D, also generate y_points.
-const xPoints = generatePointsFromRangeDict(equationDict, "x");
-let yPoints;
-if (graphicalDimensionality === 3) {
-    yPoints = generatePointsFromRangeDict(equationDict, "y");
-}
-// ---- End: Points extraction block ----
-
-// ---- Begin: Extract necessary variables using parseEquationDict ----
-let independentVariablesDict, constantsExtractedDict, equationExtractedDict;
-let xVariableExtractedDict, yVariableExtractedDict, zVariableExtractedDict;
-if (graphicalDimensionality === 2) {
-    [independentVariablesDict, constantsExtractedDict, equationExtractedDict, xVariableExtractedDict, yVariableExtractedDict] =
-        parseEquationDict(equationDict);
-} else if (graphicalDimensionality === 3) {
-    [independentVariablesDict, constantsExtractedDict, equationExtractedDict, xVariableExtractedDict, yVariableExtractedDict, zVariableExtractedDict] =
-        parseEquationDict(equationDict);
-} else {
-    throw new Error("Error: graphical_dimensionality not received and/or not evaluatable by current code.");
-}
-// ---- End: parseEquationDict block ----
-
-
-// ---------------------------------------------------------------------------
-// Start of block to check for any custom units and add them to the mathJS if necessary.
-let customUnitsList = []; 
-
-// Loop over each key in independentVariablesDict.
-for (const constantEntryKey of Object.keys(independentVariablesDict)) {
-    const independentVariablesString = independentVariablesDict[constantEntryKey];
-    const customUnitsExtracted = extractTaggedStrings(independentVariablesString);
-    independentVariablesDict[constantEntryKey] = cleanBrackets(independentVariablesDict[constantEntryKey]);
-    console.log("Inside evaluateEquationDict customUnitsExtracted from independentVariablesDict", customUnitsExtracted)
-    // For each custom unit found, define it in mathJS.
-    customUnitsExtracted.forEach(customUnit => {
-    try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
-    });
-    customUnitsList.push(...customUnitsExtracted);
-}
-
-// Check the x_variable_extracted_dict for custom units.
-let customUnitsExtracted = extractTaggedStrings(xVariableExtractedDict.units);
-xVariableExtractedDict.units = cleanBrackets(xVariableExtractedDict.units);
-customUnitsExtracted.forEach(customUnit => {
-    try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
-});
-customUnitsList.push(...customUnitsExtracted);
-
-// Check the y_variable_extracted_dict (technically not needed).
-customUnitsExtracted = extractTaggedStrings(yVariableExtractedDict.units);
-yVariableExtractedDict.units = cleanBrackets(yVariableExtractedDict.units);
-customUnitsExtracted.forEach(customUnit => {
-    try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
-});
-customUnitsList.push(...customUnitsExtracted);
-
-if (graphicalDimensionality === 3) {
-    // Check the z_variable_extracted_dict (technically not needed).
-    customUnitsExtracted = extractTaggedStrings(zVariableExtractedDict.units);
-    zVariableExtractedDict.units = cleanBrackets(zVariableExtractedDict.units);
-    customUnitsExtracted.forEach(customUnit => {
-    try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
-    });
-    customUnitsList.push(...customUnitsExtracted);
-}
-
-// Also check for any custom units in the equation_string.
-customUnitsExtracted = extractTaggedStrings(equationString);
-console.log("evaluateEquationDict equationString", equationString)
-equationString = cleanBrackets(equationString);
-customUnitsExtracted.forEach(customUnit => {
-    try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
-});
-customUnitsList.push(...customUnitsExtracted);
-
-// Remove duplicates by converting to a Set and back to an array
-customUnitsList = [...new Set(customUnitsList)];
-// Sort the custom units list from longest to shortest.
-customUnitsList.sort((a, b) => b.length - a.length);
-// End of block to check for any custom units and add them to the mathJS if necessary.
-// ---------------------------------------------------------------------------
-
-// ---- Begin: Define independent variables ----
-let independentVariables = Object.keys(independentVariablesDict);
-independentVariables.push(xVariableExtractedDict.label);
-if (graphicalDimensionality === 3) {
-    independentVariables.push(yVariableExtractedDict.label);
-}
-// ---- End: Define independent variables ----
-
-// ---- Begin: Define the dependent variable and prepare to solve ----
-let dependentVariable = ""; //initialized
-let zUnits = "";  // initialized
-let yUnits = "";  // initialized
-if (graphicalDimensionality === 3) {
-    dependentVariable = zVariableExtractedDict.label;
-} else {
-    dependentVariable = yVariableExtractedDict.label;
-}
-
-
-let solvedCoordinatesList = [];
-let dependentVariableUnits = ""; // initialized
-
-// For 2D, input_points_list is just xPoints.
-// For 3D, use Cartesian product of xPoints and yPoints.
-let inputPointsList;
-if (graphicalDimensionality === 2) {
-    inputPointsList = xPoints;
-} else if (graphicalDimensionality === 3) {
-    inputPointsList = [];
-    for (const x of xPoints) {
-    for (const y of yPoints) {
-        inputPointsList.push([x, y]);
+    // Allow override of verbose flag
+    if (equationDict.verbose !== undefined) {
+        verbose = equationDict.verbose;
     }
+
+    // Generate the x_points range; for 3D, also generate y_points.
+    const xPoints = generatePointsFromRangeDict(equationDict, "x");
+    let yPoints;
+    if (graphicalDimensionality === 3) {
+        yPoints = generatePointsFromRangeDict(equationDict, "y");
     }
-} else {
-    throw new Error("Error: graphical_dimensionality not received and/or not evaluatable by current code.");
-}
-let firstDependentVariablePointWithUnits = null; //just initializing
-// Loop over each input point, solve the equation, and store the results.
-for (const currentPoint of inputPointsList) {
-    // Set independent variable values (with units) for the current point.
+    // ---- End: Points extraction block ----
+
+    // ---- Begin: Extract necessary variables using parseEquationDict ----
+    let independentVariablesDict, constantsExtractedDict, equationExtractedDict;
+    let xVariableExtractedDict, yVariableExtractedDict, zVariableExtractedDict;
     if (graphicalDimensionality === 2) {
-    independentVariablesDict[xVariableExtractedDict.label] = `${currentPoint} ${xVariableExtractedDict.units}`;
+        [independentVariablesDict, constantsExtractedDict, equationExtractedDict, xVariableExtractedDict, yVariableExtractedDict] =
+            parseEquationDict(equationDict);
     } else if (graphicalDimensionality === 3) {
-    independentVariablesDict[xVariableExtractedDict.label] = `${currentPoint[0]} ${xVariableExtractedDict.units}`;
-    independentVariablesDict[yVariableExtractedDict.label] = `${currentPoint[1]} ${yVariableExtractedDict.units}`;
+        [independentVariablesDict, constantsExtractedDict, equationExtractedDict, xVariableExtractedDict, yVariableExtractedDict, zVariableExtractedDict] =
+            parseEquationDict(equationDict);
+    } else {
+        throw new Error("Error: graphical_dimensionality not received and/or not evaluatable by current code.");
+    }
+    // ---- End: parseEquationDict block ----
+
+
+    // ---------------------------------------------------------------------------
+    // Start of block to check for any custom units and add them to the mathJS if necessary.
+    let customUnitsList = []; 
+
+    // Loop over each key in independentVariablesDict.
+    for (const constantEntryKey of Object.keys(independentVariablesDict)) {
+        const independentVariablesString = independentVariablesDict[constantEntryKey];
+        const customUnitsExtracted = extractTaggedStrings(independentVariablesString);
+        independentVariablesDict[constantEntryKey] = cleanBrackets(independentVariablesDict[constantEntryKey]);
+        // For each custom unit found, define it in mathJS.
+        customUnitsExtracted.forEach(customUnit => {
+        try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
+        });
+        customUnitsList.push(...customUnitsExtracted);
     }
 
-    if (verbose) console.log("Evaluating point:", currentPoint);
-    console.log("Inside evaluateEquationDict", equationString, independentVariablesDict, dependentVariable)
-    const dependentVariableSolutions = solveEquation(equationString, independentVariablesDict, dependentVariable);
+    // Check the x_variable_extracted_dict for custom units.
+    let customUnitsExtracted = extractTaggedStrings(xVariableExtractedDict.units);
+    xVariableExtractedDict.units = cleanBrackets(xVariableExtractedDict.units);
+    customUnitsExtracted.forEach(customUnit => {
+        try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
+    });
+    customUnitsList.push(...customUnitsExtracted);
 
-    if (dependentVariableSolutions) {
-        for (const dependentVariablePointWithUnits of dependentVariableSolutions) {
-            //console.log("In evaluate Equation Dict, dependentVariablePointWithUnits before split", dependentVariablePointWithUnits);
-            //console.log("In evaluate Equation Dict, dependentVariablePointWithUnits.toString() before split", dependentVariablePointWithUnits.toString());
+    // Check the y_variable_extracted_dict (technically not needed).
+    customUnitsExtracted = extractTaggedStrings(yVariableExtractedDict.units);
+    yVariableExtractedDict.units = cleanBrackets(yVariableExtractedDict.units);
+    customUnitsExtracted.forEach(customUnit => {
+        try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
+    });
+    customUnitsList.push(...customUnitsExtracted);
 
-            const dependentVariablePointWithUnitsAsArray = dependentVariablePointWithUnits.toString().split(" ", 2);
-            const solutionValue = parseFloat(dependentVariablePointWithUnitsAsArray[0]);
-            // Capture units only from the first evaluation (then skip after that)
-            if (!dependentVariableUnits && dependentVariablePointWithUnitsAsArray.length > 1) {
-                dependentVariableUnits = math.unit(1, dependentVariablePointWithUnitsAsArray[1]); // Store 1 reference unit so we can divide by it in each iteration.
-                firstDependentVariablePointWithUnits = dependentVariablePointWithUnits
-                if (graphicalDimensionality === 2){yUnits=dependentVariableUnits}
-                if (graphicalDimensionality === 3){zUnits=dependentVariableUnits}
-            }
+    if (graphicalDimensionality === 3) {
+        // Check the z_variable_extracted_dict (technically not needed).
+        customUnitsExtracted = extractTaggedStrings(zVariableExtractedDict.units);
+        zVariableExtractedDict.units = cleanBrackets(zVariableExtractedDict.units);
+        customUnitsExtracted.forEach(customUnit => {
+        try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
+        });
+        customUnitsList.push(...customUnitsExtracted);
+    }
 
-            // // Convert all subsequent iterations to match the first evaluation's units
-            let standardizedSolution = dependentVariablePointWithUnits;
-            standardizedSolution = math.divide(dependentVariablePointWithUnits, dependentVariableUnits);
+    // Also check for any custom units in the equation_string.
+    customUnitsExtracted = extractTaggedStrings(equationString);
+    equationString = cleanBrackets(equationString);
+    customUnitsExtracted.forEach(customUnit => {
+        try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
+    });
+    customUnitsList.push(...customUnitsExtracted);
 
-            if (graphicalDimensionality === 2) {
-                solvedCoordinatesList.push([currentPoint, standardizedSolution]);
-            } else if (graphicalDimensionality === 3) {
-                solvedCoordinatesList.push([currentPoint[0], currentPoint[1], standardizedSolution]);
+    // Remove duplicates by converting to a Set and back to an array
+    customUnitsList = [...new Set(customUnitsList)];
+    // Sort the custom units list from longest to shortest.
+    customUnitsList.sort((a, b) => b.length - a.length);
+    // End of block to check for any custom units and add them to the mathJS if necessary.
+    // ---------------------------------------------------------------------------
+
+    // ---- Begin: Define independent variables ----
+    let independentVariables = Object.keys(independentVariablesDict);
+    independentVariables.push(xVariableExtractedDict.label);
+    if (graphicalDimensionality === 3) {
+        independentVariables.push(yVariableExtractedDict.label);
+    }
+    // ---- End: Define independent variables ----
+
+    // ---- Begin: Define the dependent variable and prepare to solve ----
+    let dependentVariable = ""; //initialized
+    let zUnits = "";  // initialized
+    let yUnits = "";  // initialized
+    if (graphicalDimensionality === 3) {
+        dependentVariable = zVariableExtractedDict.label;
+    } else {
+        dependentVariable = yVariableExtractedDict.label;
+    }
+
+
+    let solvedCoordinatesList = [];
+    let dependentVariableUnits = ""; // initialized
+
+    // For 2D, input_points_list is just xPoints.
+    // For 3D, use Cartesian product of xPoints and yPoints.
+    let inputPointsList;
+    if (graphicalDimensionality === 2) {
+        inputPointsList = xPoints;
+    } else if (graphicalDimensionality === 3) {
+        inputPointsList = [];
+        for (const x of xPoints) {
+        for (const y of yPoints) {
+            inputPointsList.push([x, y]);
+        }
+        }
+    } else {
+        throw new Error("Error: graphical_dimensionality not received and/or not evaluatable by current code.");
+    }
+    let firstDependentVariablePointWithUnits = null; //just initializing
+    // Loop over each input point, solve the equation, and store the results.
+    for (const currentPoint of inputPointsList) {
+        // Set independent variable values (with units) for the current point.
+        if (graphicalDimensionality === 2) {
+        independentVariablesDict[xVariableExtractedDict.label] = `${currentPoint} ${xVariableExtractedDict.units}`;
+        } else if (graphicalDimensionality === 3) {
+        independentVariablesDict[xVariableExtractedDict.label] = `${currentPoint[0]} ${xVariableExtractedDict.units}`;
+        independentVariablesDict[yVariableExtractedDict.label] = `${currentPoint[1]} ${yVariableExtractedDict.units}`;
+        }
+
+        if (verbose) console.log("Evaluating point:", currentPoint);
+        const dependentVariableSolutions = solveEquation(equationString, independentVariablesDict, dependentVariable);
+
+        if (dependentVariableSolutions) {
+            for (const dependentVariablePointWithUnits of dependentVariableSolutions) {
+                const dependentVariablePointWithUnitsAsArray = dependentVariablePointWithUnits.toString().split(" ", 2);
+                const solutionValue = parseFloat(dependentVariablePointWithUnitsAsArray[0]);
+                // Capture units only from the first evaluation (then skip after that)
+                if (!dependentVariableUnits && dependentVariablePointWithUnitsAsArray.length > 1) {
+                    dependentVariableUnits = math.unit(1, dependentVariablePointWithUnitsAsArray[1]); // Store 1 reference unit so we can divide by it in each iteration.
+                    firstDependentVariablePointWithUnits = dependentVariablePointWithUnits
+                    if (graphicalDimensionality === 2){yUnits=dependentVariableUnits}
+                    if (graphicalDimensionality === 3){zUnits=dependentVariableUnits}
+                }
+
+                // // Convert all subsequent iterations to match the first evaluation's units
+                let standardizedSolution = dependentVariablePointWithUnits;
+                standardizedSolution = math.divide(dependentVariablePointWithUnits, dependentVariableUnits);
+
+                if (graphicalDimensionality === 2) {
+                    solvedCoordinatesList.push([currentPoint, standardizedSolution]);
+                } else if (graphicalDimensionality === 3) {
+                    solvedCoordinatesList.push([currentPoint[0], currentPoint[1], standardizedSolution]);
+                }
             }
         }
+
+    }
+    // ---- End: Solve loop ----
+
+    // Separate the coordinates into individual arrays.
+    let xPointsFinal, yPointsFinal, zPointsFinal;
+    if (graphicalDimensionality === 2) {
+        [xPointsFinal, yPointsFinal] = solvedCoordinatesList.reduce(
+        ([xs, ys], [x, y]) => {
+            xs.push(x);
+            ys.push(y);
+            return [xs, ys];
+        },
+        [[], []]
+        );
+    } else if (graphicalDimensionality === 3) {
+        [xPointsFinal, yPointsFinal, zPointsFinal] = solvedCoordinatesList.reduce(
+        ([xs, ys, zs], [x, y, z]) => {
+            xs.push(x);
+            ys.push(y);
+            zs.push(z);
+            return [xs, ys, zs];
+        },
+        [[], [], []]
+        );
     }
 
-}
-// ---- End: Solve loop ----
+    // Convert units to proper format and remove "1 " if present
+    const formatUnits = unitStr => {
+        let formatted = unitStr.toString().replace("1 ", ""); // Remove "1 " if it exists
+        return formatted.includes("(") ? formatted : `(${formatted})`;
+    };
 
-// Separate the coordinates into individual arrays.
-let xPointsFinal, yPointsFinal, zPointsFinal;
-if (graphicalDimensionality === 2) {
-    [xPointsFinal, yPointsFinal] = solvedCoordinatesList.reduce(
-    ([xs, ys], [x, y]) => {
-        xs.push(x);
-        ys.push(y);
-        return [xs, ys];
-    },
-    [[], []]
-    );
-} else if (graphicalDimensionality === 3) {
-    [xPointsFinal, yPointsFinal, zPointsFinal] = solvedCoordinatesList.reduce(
-    ([xs, ys, zs], [x, y, z]) => {
-        xs.push(x);
-        ys.push(y);
-        zs.push(z);
-        return [xs, ys, zs];
-    },
-    [[], [], []]
-    );
-}
-
-// Convert units to proper format and remove "1 " if present
-const formatUnits = unitStr => {
-    let formatted = unitStr.toString().replace("1 ", ""); // Remove "1 " if it exists
-    return formatted.includes("(") ? formatted : `(${formatted})`;
-};
-
-let xUnits = formatUnits(xVariableExtractedDict.units);
-if (graphicalDimensionality === 2) {
-    yUnits = formatUnits(yUnits);
-} else if (graphicalDimensionality === 3) {
-    yUnits = formatUnits(yVariableExtractedDict.units);
-    zUnits = formatUnits(zUnits);
-}
+    let xUnits = formatUnits(xVariableExtractedDict.units);
+    if (graphicalDimensionality === 2) {
+        yUnits = formatUnits(yUnits);
+    } else if (graphicalDimensionality === 3) {
+        yUnits = formatUnits(yVariableExtractedDict.units);
+        zUnits = formatUnits(zUnits);
+    }
 
 
-// Convert inverse units.
-yUnits = convertInverseUnits(yUnits);
-xUnits = convertInverseUnits(xUnits);
-if (graphicalDimensionality === 3) {
-    zUnits = convertInverseUnits(zUnits);
-}
+    // Convert inverse units.
+    yUnits = convertInverseUnits(yUnits);
+    xUnits = convertInverseUnits(xUnits);
+    if (graphicalDimensionality === 3) {
+        zUnits = convertInverseUnits(zUnits);
+    }
 
-// Reapply any custom unit markup for the dependent variable.
-if (graphicalDimensionality === 2) {
-    yUnits = returnCustomUnitsMarkup(yUnits, customUnitsList);
-}
-if (graphicalDimensionality === 3) {
-    console.log("evaluateEquationDict returning custom units, before", zUnits);
-    zUnits = returnCustomUnitsMarkup(zUnits, customUnitsList);
-    console.log("evaluateEquationDict returning custom units, after", zUnits);
-}
+    // Reapply any custom unit markup for the dependent variable.
+    if (graphicalDimensionality === 2) {
+        yUnits = returnCustomUnitsMarkup(yUnits, customUnitsList);
+    }
+    if (graphicalDimensionality === 3) {
+        zUnits = returnCustomUnitsMarkup(zUnits, customUnitsList);
+    }
 
-// Build the evaluatedDict to return.
-let evaluatedDict = {
-    graphical_dimensionality: graphicalDimensionality,
-    x_units: xUnits,
-    y_units: yUnits,
-    x_points: xPointsFinal,
-    y_points: yPointsFinal
-};
-if (graphicalDimensionality === 3) {
-    evaluatedDict.z_units = zUnits;
-    evaluatedDict.z_points = zPointsFinal;
-}
+    // Build the evaluatedDict to return.
+    let evaluatedDict = {
+        graphical_dimensionality: graphicalDimensionality,
+        x_units: xUnits,
+        y_units: yUnits,
+        x_points: xPointsFinal,
+        y_points: yPointsFinal
+    };
+    if (graphicalDimensionality === 3) {
+        evaluatedDict.z_units = zUnits;
+        evaluatedDict.z_points = zPointsFinal;
+    }
 
-// Remove the added graphical_dimensionality key if it wasn’t originally provided.
-if (graphicalDimensionalityAdded) {
-    delete equationDict.graphical_dimensionality;
-}
+    // Remove the added graphical_dimensionality key if it wasn’t originally provided.
+    if (graphicalDimensionalityAdded) {
+        delete equationDict.graphical_dimensionality;
+    }
 
-return evaluatedDict;
+    return evaluatedDict;
 }
 
 export {parseVariable};
