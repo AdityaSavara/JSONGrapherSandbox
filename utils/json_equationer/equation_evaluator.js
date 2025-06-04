@@ -426,7 +426,8 @@ function generatePointsFromRangeDict(rangeDict, variableName = "x") {
  * @returns {string} The units string with custom units wrapped in '<' and '>'.
  */
 function returnCustomUnitsMarkup(unitsString, customUnitsList) {
-// Sort the custom_units_list from longest to shortest.
+console.log("returnCustomUnitsMarkup", customUnitsList);
+    // Sort the custom_units_list from longest to shortest.
 const sortedCustomUnitsList = customUnitsList.slice().sort((a, b) => b.length - a.length);
 // For each custom unit, replace all occurrences in the string.
 for (const customUnit of sortedCustomUnitsList) {
@@ -505,6 +506,19 @@ function splitAtFirstDelimiter(str, delimiter = " ") {
 }
 
 /**
+ * Helper function to clean custom unit brackets. Removes '<' and '>' from a string.
+ * In the future, this could be made more general rather than hardcoded for angle brackets.
+ *
+ * @param {string} inputString - The string to clean.
+ * @returns {string} The string with angle brackets removed.
+ */
+function cleanBrackets(inputString) {
+    // Use replaceAll to ensure all occurrences are removed
+    return inputString.replace(/</g, "").replace(/>/g, "");
+}
+
+
+/**
  * Evaluates an equation dictionary and returns computed x_points, y_points (or z_points for 3D),
  * along with their associated units. For equations with multiple solutions (as in a circle),
  * all solutions are returned.
@@ -519,9 +533,12 @@ function splitAtFirstDelimiter(str, delimiter = " ") {
  * @throws {Error} If graphical dimensionality is not supported or missing.
  */
 function evaluateEquationDict(equationDict, verbose = false) {
-// ---- Begin: Block to extract the x_points (and y_points for 3D) needed ----
-const equationString = equationDict.equation_string;
+// Create a deep copy of the input dictionary to avoid modifying the original mutable object.
+equationDict = JSON.parse(JSON.stringify(equationDict));
 
+// ---- Begin: Block to extract the x_points (and y_points for 3D) needed ----
+let equationString = equationDict.equation_string; // Use the copied object
+// ... rest of your function logic would then use `equationDict`
 // If graphical_dimensionality is not provided, default to 2.
 let graphicalDimensionality = equationDict.graphical_dimensionality || 2;
 let graphicalDimensionalityAdded = !("graphical_dimensionality" in equationDict);
@@ -563,43 +580,52 @@ let customUnitsList = [];
 for (const constantEntryKey of Object.keys(independentVariablesDict)) {
     const independentVariablesString = independentVariablesDict[constantEntryKey];
     const customUnitsExtracted = extractTaggedStrings(independentVariablesString);
+    independentVariablesDict[constantEntryKey] = cleanBrackets(independentVariablesDict[constantEntryKey]);
+    console.log("Inside evaluateEquationDict customUnitsExtracted from independentVariablesDict", customUnitsExtracted)
     // For each custom unit found, define it in mathJS.
     customUnitsExtracted.forEach(customUnit => {
-    if (!math.unit(customUnit)) math.createUnit(customUnit);
+    try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
     });
     customUnitsList.push(...customUnitsExtracted);
 }
 
 // Check the x_variable_extracted_dict for custom units.
 let customUnitsExtracted = extractTaggedStrings(xVariableExtractedDict.units);
+xVariableExtractedDict.units = cleanBrackets(xVariableExtractedDict.units);
 customUnitsExtracted.forEach(customUnit => {
-    if (!math.unit(customUnit)) math.createUnit(customUnit);
+    try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
 });
 customUnitsList.push(...customUnitsExtracted);
 
 // Check the y_variable_extracted_dict (technically not needed).
 customUnitsExtracted = extractTaggedStrings(yVariableExtractedDict.units);
+yVariableExtractedDict.units = cleanBrackets(yVariableExtractedDict.units);
 customUnitsExtracted.forEach(customUnit => {
-    mathJS.define(`${customUnit} = [custom]`);
+    try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
 });
 customUnitsList.push(...customUnitsExtracted);
 
 if (graphicalDimensionality === 3) {
     // Check the z_variable_extracted_dict (technically not needed).
     customUnitsExtracted = extractTaggedStrings(zVariableExtractedDict.units);
+    zVariableExtractedDict.units = cleanBrackets(zVariableExtractedDict.units);
     customUnitsExtracted.forEach(customUnit => {
-    if (!math.unit(customUnit)) math.createUnit(customUnit);
+    try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
     });
     customUnitsList.push(...customUnitsExtracted);
 }
 
 // Also check for any custom units in the equation_string.
 customUnitsExtracted = extractTaggedStrings(equationString);
+console.log("evaluateEquationDict equationString", equationString)
+equationString = cleanBrackets(equationString);
 customUnitsExtracted.forEach(customUnit => {
-    if (!math.unit(customUnit)) math.createUnit(customUnit);
+    try { math.unit(customUnit); } catch { math.createUnit(customUnit); }
 });
 customUnitsList.push(...customUnitsExtracted);
 
+// Remove duplicates by converting to a Set and back to an array
+customUnitsList = [...new Set(customUnitsList)];
 // Sort the custom units list from longest to shortest.
 customUnitsList.sort((a, b) => b.length - a.length);
 // End of block to check for any custom units and add them to the mathJS if necessary.
@@ -654,7 +680,7 @@ for (const currentPoint of inputPointsList) {
     }
 
     if (verbose) console.log("Evaluating point:", currentPoint);
-
+    console.log("Inside evaluateEquationDict", equationString, independentVariablesDict, dependentVariable)
     const dependentVariableSolutions = solveEquation(equationString, independentVariablesDict, dependentVariable);
 
     if (dependentVariableSolutions) {
@@ -737,7 +763,9 @@ if (graphicalDimensionality === 2) {
     yUnits = returnCustomUnitsMarkup(yUnits, customUnitsList);
 }
 if (graphicalDimensionality === 3) {
+    console.log("evaluateEquationDict returning custom units, before", zUnits);
     zUnits = returnCustomUnitsMarkup(zUnits, customUnitsList);
+    console.log("evaluateEquationDict returning custom units, after", zUnits);
 }
 
 // Build the evaluatedDict to return.
