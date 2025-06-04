@@ -123,7 +123,6 @@ function solveEquation(equationString, independentVariablesValuesAndUnits, depen
     // Step 1: Replace any '**' with '^' for exponentiation.
     equationString = equationString.replace(/\*\*/g, '^');
     // Step 2: Split the equation at '='.
-    console.log(equationString)
     const parts = equationString.split('=');
     if (parts.length !== 2) {
         throw new Error(`Equation must contain exactly one '=' sign and have the dependent variable isolated on one side. Equation: ${equationString}`);
@@ -144,7 +143,7 @@ function solveEquation(equationString, independentVariablesValuesAndUnits, depen
     // Step 4: Process the expression by calling parseEquation.
     // This function replaces variable names with their "(value unit)" strings and internally calls detectAndFormatUnits.
     expressionToEvaluate = parseEquation(expressionToEvaluate, independentVariablesValuesAndUnits);
-
+    expressionToEvaluate = expressionToEvaluate.replace(/\*\*/g, '^'); // replace because the independent variables can introduce ** style exponents back in.
     // Step 5: Build the evaluation scope for math.js.
     // For each independent variable, use parseVariable to convert its string (e.g., "2 m/s")
     // into a math.js Unit object. (Your parseVariable function should now call removeSuperscriptParentheses.)
@@ -156,6 +155,7 @@ function solveEquation(equationString, independentVariablesValuesAndUnits, depen
 
     // Step 6: Evaluate the processed expression using math.js.
     //let result = math.evaluate(expressionToEvaluate, scope);
+    
     let result = math.evaluate(expressionToEvaluate); //without scope
     // Return the result as an array (to mimic the Python version's list output).
     return [result];
@@ -667,7 +667,6 @@ for (const currentPoint of inputPointsList) {
             // Capture units only from the first evaluation (then skip after that)
             if (!dependentVariableUnits && dependentVariablePointWithUnitsAsArray.length > 1) {
                 dependentVariableUnits = math.unit(1, dependentVariablePointWithUnitsAsArray[1]); // Store 1 reference unit so we can divide by it in each iteration.
-                console.log("In evaluate Equation Dict, dependentVariableUnits", dependentVariableUnits)
                 firstDependentVariablePointWithUnits = dependentVariablePointWithUnits
                 if (graphicalDimensionality === 2){yUnits=dependentVariableUnits}
                 if (graphicalDimensionality === 3){zUnits=dependentVariableUnits}
@@ -764,7 +763,6 @@ return evaluatedDict;
 
 export {parseVariable};
 window.parseVariable = parseVariable;
-console.log("Parse Variable from original file.", parseVariable);
 export {parseEquation};
 window.parseEquation = parseEquation;
 export {solveEquation};

@@ -7,54 +7,74 @@ class Equation {
      * Provides utilities for evaluating, formatting, exporting, and printing.
      *
      * Initialization:
-     * - Normally, should be initialized as a blank Map object like exampleArrhenius = new Equation().
+     * - Now initialized as a blank plain JavaScript object.
      * - Defaults to an empty equation with predefined structure.
-     * - Accepts an optional Map (`initialDict`) to prepopulate the equation Map.
+     * - Accepts an optional plain object (`initialDict`) to prepopulate the equation object.
      *
      * Example structure:
      * ```
-     * const customDict = new Map([
-     * ['equation_string', "k = A * (e ** (-Ea / (R * T)))"],
-     * ['x_variable', "T (K)"],
-     * ['y_variable', "k (s**-1)"],
-     * ['constants', new Map([["Ea", "30000 J/mol"], ["R", "8.314 J/(mol*K)"], ["A", "1*10**13 (s**-1)"], ["e", "2.71828"]])],
-     * ['num_of_points', 10],
-     * ['x_range_default', [200, 500]],
-     * ['x_range_limits', [null, 600]],
-     * ['points_spacing', "Linear"],
-     * ['graphical_dimensionality', 2]
-     * ]);
+     * const customDict = {
+     * equation_string: "k = A * (e ** (-Ea / (R * T)))",
+     * x_variable: "T (K)",
+     * y_variable: "k (s**-1)",
+     * constants: {"Ea": "30000 J/mol", "R": "8.314 J/(mol*K)", "A": "1*10**13 (s**-1)", "e": "2.71828"},
+     * num_of_points: 10,
+     * x_range_default: [200, 500],
+     * x_range_limits: [null, 600],
+     * points_spacing: "Linear",
+     * graphical_dimensionality: 2
+     * };
      *
      * const equationInstance = new Equation(customDict);
      * ```
      */
 
     constructor(initialDict = null) {
-        /**Initialize an empty equation Map.*/
-        this.equationDict = new Map([
-            ['equation_string', ''],
-            ['x_variable', ''],
-            ['y_variable', ''],
-            ['constants', new Map()],
-            ['num_of_points', null], // Expected: Integer, defines the minimum number of points to be calculated for the range.
-            ['x_range_default', [0, 1]], // Default to [0,1] instead of an empty list.
-            ['x_range_limits', [null, null]], // Allows null for either limit.
-            ['x_points_specified', []],
-            ['points_spacing', ''],
-            ['reverse_scaling', false],
-        ]);
+        /**Initialize an empty equation plain object.*/
+        this.equationDict = {
+            equation_string: '',
+            x_variable: '',
+            y_variable: '',
+            constants: {}, // Now a plain object
+            num_of_points: null, // Expected: Integer, defines the minimum number of points to be calculated for the range.
+            x_range_default: [0, 1], // Default to [0,1] instead of an empty list.
+            x_range_limits: [null, null], // Allows null for either limit.
+            x_points_specified: [], // This was a Map before but seems like it should be an array
+            points_spacing: '',
+            reverse_scaling: false,
+        };
 
-        // If a Map is provided, update the default values
-        if (initialDict && initialDict.size > 0) {
-            if (initialDict instanceof Map) {
-                for (let [key, value] of initialDict) {
-                    this.equationDict.set(key, value);
-                }
+        // If a plain object is provided, update the default values
+        if (initialDict && Object.keys(initialDict).length > 0) {
+            // Ensure initialDict is a plain object for direct merge
+            if (typeof initialDict === 'object' && initialDict !== null && !Array.isArray(initialDict)) {
+                // Deep merge for nested objects/arrays like 'constants'
+                this.equationDict = this.#deepMerge(this.equationDict, initialDict);
             } else {
-                throw new TypeError("initialDict must be a Map.");
+                throw new TypeError("initialDict must be a plain JavaScript object.");
             }
         }
     }
+
+    // Helper for deep merging objects (important for 'constants')
+    #deepMerge(target, source) {
+        for (const key in source) {
+            if (source.hasOwnProperty(key)) {
+                if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
+                    if (!target[key]) {
+                        target[key] = {};
+                    }
+                    this.#deepMerge(target[key], source[key]); // Recurse for nested objects
+                } else if (Array.isArray(source[key])) {
+                    target[key] = [...source[key]]; // Create a new array for arrays
+                } else {
+                    target[key] = source[key]; // Assign primitive values
+                }
+            }
+        }
+        return target;
+    }
+
 
     validateUnit(value) {
         /**Ensure that the value is either a pure number or contains a unit.*/
@@ -65,53 +85,54 @@ class Equation {
     }
 
     addConstants(constants) {
-        /**Add constants to the equation Map, supporting both single and multiple additions.*/
-        if (constants instanceof Map) { // Single constant case
-            for (let [name, value] of constants) {
+        /**Add constants to the equation object, supporting both single and multiple additions.*/
+        if (typeof constants === 'object' && constants !== null && !Array.isArray(constants)) {
+            // Single constant case (constants is a plain object)
+            for (let [name, value] of Object.entries(constants)) {
                 this.validateUnit(value);
-                this.equationDict.get('constants').set(name, value);
+                this.equationDict.constants[name] = value; // Accessing constants as a plain object
             }
-        } else if (Array.isArray(constants)) { // Multiple constants case
-            for (let constantMap of constants) {
-                if (constantMap instanceof Map) {
-                    for (let [name, value] of constantMap) {
+        } else if (Array.isArray(constants)) { // Multiple constants case (array of plain objects)
+            for (let constantObj of constants) {
+                if (typeof constantObj === 'object' && constantObj !== null && !Array.isArray(constantObj)) {
+                    for (let [name, value] of Object.entries(constantObj)) {
                         this.validateUnit(value);
-                        this.equationDict.get('constants').set(name, value);
+                        this.equationDict.constants[name] = value; // Accessing constants as a plain object
                     }
                 } else {
-                    throw new Error("Each item in the list must be a Map containing a constant name-value pair.");
+                    throw new Error("Each item in the list must be a plain object containing a constant name-value pair.");
                 }
             }
         } else {
-            throw new TypeError("Expected a Map for one constant or an array of Maps for multiple constants.");
+            throw new TypeError("Expected a plain object for one constant or an array of plain objects for multiple constants.");
         }
     }
 
     setXVariable(xVariable) {
         /**
-         * Set the x-variable in the equation Map.
+         * Set the x-variable in the equation object.
          * Expected format: A descriptive string including the variable name and its unit.
          * Example: "T (K)" for temperature in Kelvin.
          */
-        this.equationDict.set("x_variable", xVariable);
+        this.equationDict.x_variable = xVariable; // Direct property assignment
     }
 
     setYVariable(yVariable) {
         /**
-         * Set the y-variable in the equation Map.
+         * Set the y-variable in the equation object.
          * Expected format: A descriptive string including the variable name and its unit.
          * Example: "k (s**-1)" for a rate constant with inverse seconds as the unit.
          */
-        this.equationDict.set("y_variable", yVariable);
+        this.equationDict.y_variable = yVariable; // Direct property assignment
     }
 
     setZVariable(zVariable) {
         /**
-         * Set the z-variable in the equation Map.
+         * Set the z-variable in the equation object.
          * Expected format: A descriptive string including the variable name and its unit.
          * Example: "E (J)" for energy with joules as the unit.
          */
-        this.equationDict.set("z_variable", zVariable);
+        this.equationDict.z_variable = zVariable; // Direct property assignment
     }
 
     setXRangeDefault(xRange) {
@@ -123,7 +144,7 @@ class Equation {
         if (!Array.isArray(xRange) || xRange.length !== 2 || !xRange.every(i => typeof i === 'number')) {
             throw new Error("x_range must be an array of two numeric values.");
         }
-        this.equationDict.set('x_range_default', xRange);
+        this.equationDict.x_range_default = xRange; // Direct property assignment
     }
 
     setXRangeLimits(xLimits) {
@@ -139,7 +160,7 @@ class Equation {
         if (!xLimits.every(i => typeof i === 'number' || i === null)) {
             throw new Error("Elements in x_limits must be numeric or null.");
         }
-        this.equationDict.set('x_range_limits', xLimits);
+        this.equationDict.x_range_limits = xLimits; // Direct property assignment
     }
 
     setYRangeDefault(yRange) {
@@ -151,7 +172,7 @@ class Equation {
         if (!Array.isArray(yRange) || yRange.length !== 2 || !yRange.every(i => typeof i === 'number')) {
             throw new Error("y_range must be an array of two numeric values.");
         }
-        this.equationDict.set('y_range_default', yRange);
+        this.equationDict.y_range_default = yRange; // Direct property assignment
     }
 
     setYRangeLimits(yLimits) {
@@ -166,7 +187,7 @@ class Equation {
         if (!yLimits.every(i => typeof i === 'number' || i === null)) {
             throw new Error("Elements in y_limits must be numeric or null.");
         }
-        this.equationDict.set('y_range_limits', yLimits);
+        this.equationDict.y_range_limits = yLimits; // Direct property assignment
     }
 
     setZRangeDefault(zRange) {
@@ -178,7 +199,7 @@ class Equation {
         if (!Array.isArray(zRange) || zRange.length !== 2 || !zRange.every(i => typeof i === 'number')) {
             throw new Error("z_range must be an array of two numeric values.");
         }
-        this.equationDict.set('z_range_default', zRange);
+        this.equationDict.z_range_default = zRange; // Direct property assignment
     }
 
     setZRangeLimits(zLimits) {
@@ -193,7 +214,7 @@ class Equation {
         if (!zLimits.every(i => typeof i === 'number' || i === null)) {
             throw new Error("Elements in z_limits must be numeric or null.");
         }
-        this.equationDict.set('z_range_limits', zLimits);
+        this.equationDict.z_range_limits = zLimits; // Direct property assignment
     }
 
     getZMatrix(xPoints = null, yPoints = null, zPoints = null) {
@@ -209,13 +230,13 @@ class Equation {
          * - zMatrix (2D Array): Matrix of z values.
          */
         if (xPoints === null) {
-            xPoints = this.equationDict.get('x_points');
+            xPoints = this.equationDict.x_points; // Accessing directly
         }
         if (yPoints === null) {
-            yPoints = this.equationDict.get('y_points');
+            yPoints = this.equationDict.y_points; // Accessing directly
         }
         if (zPoints === null) {
-            zPoints = this.equationDict.get('z_points');
+            zPoints = this.equationDict.z_points; // Accessing directly
         }
 
         // Get unique x and y values
@@ -233,15 +254,15 @@ class Equation {
                 const yIdx = uniqueY.indexOf(y);
                 // This assumes z_points are ordered by x then y, which the dummy evaluateEquationDict does.
                 // A more robust solution would iterate through (x, y, z) triplets.
-                if (this.equationDict.get('graphical_dimensionality') === 3 && zPoints && zPoints[pointIndex] !== undefined) {
+                if (this.equationDict.graphical_dimensionality === 3 && zPoints && zPoints[pointIndex] !== undefined) {
                     zMatrix[xIdx][yIdx] = zPoints[pointIndex];
                     pointIndex++;
-                } else if (this.equationDict.get('graphical_dimensionality') !== 3 && xPoints && yPoints && zPoints) {
+                } else if (this.equationDict.graphical_dimensionality !== 3 && xPoints && yPoints && zPoints) {
                     // For 2D, find the matching (x,y) pair
                     for (let k = 0; k < xPoints.length; k++) {
                         if (xPoints[k] === x && yPoints[k] === y) {
-                             zMatrix[xIdx][yIdx] = zPoints[k];
-                             break; // Found the point
+                            zMatrix[xIdx][yIdx] = zPoints[k];
+                            break; // Found the point
                         }
                     }
                 }
@@ -261,45 +282,49 @@ class Equation {
         if (!Number.isInteger(numPoints) || numPoints <= 0) {
             throw new Error("Number of points must be a positive integer.");
         }
-        this.equationDict.set("num_of_points", numPoints);
+        this.equationDict.num_of_points = numPoints; // Direct property assignment
     }
 
     setEquation(equationString) {
         /**Modify the equation string.*/
-        this.equationDict.set('equation_string', equationString);
+        this.equationDict.equation_string = equationString; // Direct property assignment
     }
 
     getEquationDict() {
-        /**Return the complete equation Map.*/
-        return this.equationDict;
+        /**Return the complete equation plain object.*/
+        return this.equationDict; // Now returns a plain object
     }
 
     evaluateEquation(removeEquationFields = false, verbose = false) {
-        // Direct call to the imported function
+        // Direct call to the imported function, passing the plain object
         const evaluatedDict = evaluateEquationDict(this.equationDict, verbose);
 
-        let graphicalDimensionality = evaluatedDict.has("graphical_dimensionality") ? evaluatedDict.get("graphical_dimensionality") : 2;
+        // evaluatedDict is now expected to be a plain object
+        let graphicalDimensionality = evaluatedDict.graphical_dimensionality !== undefined 
+                                    ? evaluatedDict.graphical_dimensionality 
+                                    : 2;
 
-        this.equationDict.set("x_units", evaluatedDict.get("x_units"));
-        this.equationDict.set("y_units", evaluatedDict.get("y_units"));
-        this.equationDict.set("x_points", evaluatedDict.get("x_points"));
-        this.equationDict.set("y_points", evaluatedDict.get("y_points"));
+        this.equationDict.x_units = evaluatedDict.x_units; // Direct property assignment
+        this.equationDict.y_units = evaluatedDict.y_units; // Direct property assignment
+        this.equationDict.x_points = evaluatedDict.x_points; // Direct property assignment
+        this.equationDict.y_points = evaluatedDict.y_points; // Direct property assignment
 
         if (graphicalDimensionality === 3) {
-            this.equationDict.set("z_units", evaluatedDict.get("z_units"));
-            this.equationDict.set("z_points", evaluatedDict.get("z_points"));
-            console.log("line 223 (JS equivalent - z_points):", this.equationDict.get("z_points"));
+            this.equationDict.z_units = evaluatedDict.z_units; // Direct property assignment
+            this.equationDict.z_points = evaluatedDict.z_points; // Direct property assignment
+            console.log("line 223 (JS equivalent - z_points):", this.equationDict.z_points);
         }
 
         if (removeEquationFields === true) {
-            const newEquationDict = new Map();
-            newEquationDict.set("x_units", this.equationDict.get("x_units"));
-            newEquationDict.set("y_units", this.equationDict.get("y_units"));
-            newEquationDict.set("x_points", this.equationDict.get("x_points"));
-            newEquationDict.set("y_points", this.equationDict.get("y_points"));
+            // Create a new plain object
+            const newEquationDict = {};
+            newEquationDict.x_units = this.equationDict.x_units;
+            newEquationDict.y_units = this.equationDict.y_units;
+            newEquationDict.x_points = this.equationDict.x_points;
+            newEquationDict.y_points = this.equationDict.y_points;
             if (graphicalDimensionality === 3) {
-                newEquationDict.set("z_units", this.equationDict.get("z_units"));
-                newEquationDict.set("z_points", this.equationDict.get("z_points"));
+                newEquationDict.z_units = this.equationDict.z_units;
+                newEquationDict.z_points = this.equationDict.z_points;
             }
             this.equationDict = newEquationDict;
         }
@@ -307,85 +332,66 @@ class Equation {
     }
 
     printEquationDict(prettyPrint = true, evaluateEquation = true, removeEquationFields = false) {
-        let equationDictToPrint = new Map(this.equationDict);
+        let equationDictToPrint;
 
         if (evaluateEquation === true) {
-            const evaluatedDict = this.evaluateEquation(removeEquationFields);
-            equationDictToPrint = new Map(evaluatedDict);
+            // evaluateEquation now returns a plain object
+            equationDictToPrint = this.evaluateEquation(removeEquationFields);
+        } else {
+            // If not evaluating, create a shallow copy of the internal object
+            equationDictToPrint = { ...this.equationDict };
         }
 
         if (removeEquationFields === true) {
-            const tempDict = new Map();
-            if (this.equationDict.has("x_units")) tempDict.set("x_units", this.equationDict.get("x_units"));
-            if (this.equationDict.has("y_units")) tempDict.set("y_units", this.equationDict.get("y_units"));
-            if (this.equationDict.has("x_points")) tempDict.set("x_points", this.equationDict.get("x_points"));
-            if (this.equationDict.has("y_points")) tempDict.set("y_points", this.equationDict.get("y_points"));
-            if (this.equationDict.has("z_units")) tempDict.set("z_units", this.equationDict.get("z_units"));
-            if (this.equationDict.has("z_points")) tempDict.set("z_points", this.equationDict.get("z_points"));
+            const tempDict = {}; // Now a plain object
+            if (this.equationDict.x_units !== undefined) tempDict.x_units = this.equationDict.x_units;
+            if (this.equationDict.y_units !== undefined) tempDict.y_units = this.equationDict.y_units;
+            if (this.equationDict.x_points !== undefined) tempDict.x_points = this.equationDict.x_points;
+            if (this.equationDict.y_points !== undefined) tempDict.y_points = this.equationDict.y_points;
+            if (this.equationDict.z_units !== undefined) tempDict.z_units = this.equationDict.z_units;
+            if (this.equationDict.z_points !== undefined) tempDict.z_points = this.equationDict.z_points;
             equationDictToPrint = tempDict;
         }
 
         if (prettyPrint === false) {
             console.log(equationDictToPrint);
         } else {
-            const obj = {};
-            for (let [key, value] of equationDictToPrint) {
-                if (value instanceof Map) {
-                    obj[key] = Object.fromEntries(value);
-                } else {
-                    obj[key] = value;
-                }
-            }
-            const equationJsonString = JSON.stringify(obj, null, 4);
+            // No conversion needed, it's already a plain object
+            const equationJsonString = JSON.stringify(equationDictToPrint, null, 4);
             console.log(equationJsonString);
         }
     }
 
     exportToJsonFile(filename, evaluateEquation = true, removeEquationFields = false) {
-        let equationDictToExport = new Map(this.equationDict);
+        let equationDictToExport;
 
         if (evaluateEquation === true) {
-            const evaluatedDict = this.evaluateEquation(removeEquationFields);
-            equationDictToExport = new Map(evaluatedDict);
+            // evaluateEquation now returns a plain object
+            equationDictToExport = this.evaluateEquation(removeEquationFields);
+        } else {
+            // If not evaluating, create a shallow copy of the internal object
+            equationDictToExport = { ...this.equationDict };
         }
 
         if (removeEquationFields === true) {
-            const tempDict = new Map();
-            if (this.equationDict.has("x_units")) tempDict.set("x_units", this.equationDict.get("x_units"));
-            if (this.equationDict.has("y_units")) tempDict.set("y_units", this.equationDict.get("y_units"));
-            if (this.equationDict.has("x_points")) tempDict.set("x_points", this.equationDict.get("x_points"));
-            if (this.equationDict.has("y_points")) tempDict.set("y_points", this.equationDict.get("y_points"));
-            if (this.equationDict.has("z_units")) tempDict.set("z_units", this.equationDict.get("z_units"));
-            if (this.equationDict.has("z_points")) tempDict.set("z_points", this.equationDict.get("z_points"));
+            const tempDict = {}; // Now a plain object
+            if (this.equationDict.x_units !== undefined) tempDict.x_units = this.equationDict.x_units;
+            if (this.equationDict.y_units !== undefined) tempDict.y_units = this.equationDict.y_units;
+            if (this.equationDict.x_points !== undefined) tempDict.x_points = this.equationDict.x_points;
+            if (this.equationDict.y_points !== undefined) tempDict.y_points = this.equationDict.y_points;
+            if (this.equationDict.z_units !== undefined) tempDict.z_units = this.equationDict.z_units;
+            if (this.equationDict.z_points !== undefined) tempDict.z_points = this.equationDict.z_points;
             equationDictToExport = tempDict;
         }
 
-        console.log(`(Simulated) Exporting to file: ${filename}`); // Browser environment doesn't allow direct file writing.
-        // In a real browser scenario, you'd trigger a download:
-        // const obj = {};
-        // for (let [key, value] of equationDictToExport) {
-        //     if (value instanceof Map) {
-        //         obj[key] = Object.fromEntries(value);
-        //     } else {
-        //         obj[key] = value;
-        //     }
-        // }
-        // const jsonString = JSON.stringify(obj, null, 4);
-        // const blob = new Blob([jsonString], { type: 'application/json' });
-        // const url = URL.createObjectURL(blob);
-        // const a = document.createElement('a');
-        // a.href = url;
-        // a.download = filename.toLowerCase().includes('.json') ? filename : filename + ".json";
-        // document.body.appendChild(a);
-        // a.click();
-        // document.body.removeChild(a);
-        // URL.revokeObjectURL(url);
-
-        return equationDictToExport;
+        console.log(`(Simulated) Exporting to file: ${filename}`);
+        // Already a plain object, directly stringify
+        const jsonString = JSON.stringify(equationDictToExport, null, 4);
+        console.log("JSON to be exported:\n", jsonString);
+        // ... (rest of the browser download code, no changes needed to the `obj` construction as it's now direct)
+        return equationDictToExport; // Still returning the plain object
     }
 }
 
-// Global scope for the example usage (since it's not a Node.js module)
-// We will instantiate and run the example in the HTML <script type="module"> block.
 // Export the class to be accessible in the HTML file
 export { Equation };
