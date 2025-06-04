@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math.js Unit Solver</title>
+    <title>Math.js Unit Solver.</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>
 </head>
 <body>
@@ -59,7 +59,7 @@
         const tSolution = math.divide(math.subtract(rhsValue, independentVariables.y), independentVariables.x);
 
         // Display result
-        document.getElementById("output").textContent = `Computed t: ${tSolution.toString()}`;
+        document.getElementById("output").innerHTML = "Computed t: " + tSolution.toString() + "<br>Open inspect and console to check log for the more complex tests.";
 
         // Example usage
         const variables = {
