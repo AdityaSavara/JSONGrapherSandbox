@@ -556,16 +556,16 @@ if (graphicalDimensionality === 2) {
 
 
 // ---------------------------------------------------------------------------
-// Start of block to check for any custom units and add them to the ureg if necessary.
+// Start of block to check for any custom units and add them to the mathJS if necessary.
 let customUnitsList = []; 
 
 // Loop over each key in independentVariablesDict.
 for (const constantEntryKey of Object.keys(independentVariablesDict)) {
     const independentVariablesString = independentVariablesDict[constantEntryKey];
     const customUnitsExtracted = extractTaggedStrings(independentVariablesString);
-    // For each custom unit found, define it in ureg.
+    // For each custom unit found, define it in mathJS.
     customUnitsExtracted.forEach(customUnit => {
-    ureg.define(`${customUnit} = [custom]`); // use "[custom]" to create a custom unit
+    if (!math.unit(customUnit)) math.createUnit(customUnit);
     });
     customUnitsList.push(...customUnitsExtracted);
 }
@@ -573,14 +573,14 @@ for (const constantEntryKey of Object.keys(independentVariablesDict)) {
 // Check the x_variable_extracted_dict for custom units.
 let customUnitsExtracted = extractTaggedStrings(xVariableExtractedDict.units);
 customUnitsExtracted.forEach(customUnit => {
-    ureg.define(`${customUnit} = [custom]`);
+    if (!math.unit(customUnit)) math.createUnit(customUnit);
 });
 customUnitsList.push(...customUnitsExtracted);
 
 // Check the y_variable_extracted_dict (technically not needed).
 customUnitsExtracted = extractTaggedStrings(yVariableExtractedDict.units);
 customUnitsExtracted.forEach(customUnit => {
-    ureg.define(`${customUnit} = [custom]`);
+    mathJS.define(`${customUnit} = [custom]`);
 });
 customUnitsList.push(...customUnitsExtracted);
 
@@ -588,7 +588,7 @@ if (graphicalDimensionality === 3) {
     // Check the z_variable_extracted_dict (technically not needed).
     customUnitsExtracted = extractTaggedStrings(zVariableExtractedDict.units);
     customUnitsExtracted.forEach(customUnit => {
-    ureg.define(`${customUnit} = [custom]`);
+    if (!math.unit(customUnit)) math.createUnit(customUnit);
     });
     customUnitsList.push(...customUnitsExtracted);
 }
@@ -596,13 +596,13 @@ if (graphicalDimensionality === 3) {
 // Also check for any custom units in the equation_string.
 customUnitsExtracted = extractTaggedStrings(equationString);
 customUnitsExtracted.forEach(customUnit => {
-    ureg.define(`${customUnit} = [custom]`);
+    if (!math.unit(customUnit)) math.createUnit(customUnit);
 });
 customUnitsList.push(...customUnitsExtracted);
 
 // Sort the custom units list from longest to shortest.
 customUnitsList.sort((a, b) => b.length - a.length);
-// End of block to check for any custom units and add them to the ureg if necessary.
+// End of block to check for any custom units and add them to the mathJS if necessary.
 // ---------------------------------------------------------------------------
 
 // ---- Begin: Define independent variables ----
