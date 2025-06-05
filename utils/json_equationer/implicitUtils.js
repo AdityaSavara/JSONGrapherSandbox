@@ -1,5 +1,6 @@
 // Import equation class from equation_creator.js
 import { Equation } from './equation_creator.js'; // Adjust the path as needed
+import {getUnitsScalingRatio} from '../unitScaling.js' 
 
 /**
  * Updates the `x_range_default` values for all simulate and equation data series
@@ -273,29 +274,6 @@ export function separateLabelTextFromUnits(labelWithUnits) {
 
 /**
  * **_PYTHON**
- * Placeholder for `get_units_scaling_ratio`.
- * This function should return a scaling factor to convert from `fromUnits` to `toUnits`.
- * You MUST implement the actual unit conversion logic.
- *
- * @param {string} fromUnits - The units to convert from.
- * @param {string} toUnits - The units to convert to.
- * @returns {number} The scaling ratio. Returns 1 if conversion is not possible or units are empty.
- */
-function getUnitsScalingRatio_PYTHON(fromUnits, toUnits) {
-    // Implement your unit conversion logic here (e.g., "m" to "cm" would be 100)
-    console.warn("getUnitsScalingRatio_PYTHON is a placeholder. Implement actual unit conversion logic.");
-    if (fromUnits === toUnits || fromUnits === "" || toUnits === "") {
-        return 1;
-    }
-    // Example: simple hardcoded conversion (replace with robust logic)
-    if (fromUnits === "m" && toUnits === "cm") return 100;
-    if (fromUnits === "cm" && toUnits === "m") return 0.01;
-    // Add more conversion rules as needed
-    return 1; // Default to no scaling if conversion not defined
-}
-
-/**
- * **_PYTHON**
  * Placeholder for `scale_dataseries_dict`.
  * This function should scale the x, y (and z) values within a data series dictionary.
  * You MUST implement the actual scaling logic.
@@ -448,9 +426,9 @@ export function evaluateEquationForDataSeriesByIndex(figDict, dataSeriesIndex, v
                     const simulatedDataSeriesYUnits = separateLabelTextFromUnits(dataDictFilled.y_label).units; // Calls your separateLabelTextFromUnits
                     const simulatedDataSeriesZUnits = separateLabelTextFromUnitsFromPython(dataDictFilled.z_label || "").units; // Calls your separateLabelTextFromUnits
 
-                    const xUnitsRatio = getUnitsScalingRatio_PYTHON(simulatedDataSeriesXUnits, existingRecordXUnits); // Calls your getUnitsScalingRatio_PYTHON
-                    const yUnitsRatio = getUnitsScalingRatio_PYTHON(simulatedDataSeriesYUnits, existingRecordYUnits); // Calls your getUnitsScalingRatio_PYTHON
-                    const zUnitsRatio = getUnitsScalingRatio_PYTHON(simulatedDataSeriesZUnits, existingRecordZUnits); // Calls your getUnitsScalingRatio_PYTHON
+                    const xUnitsRatio = getUnitsScalingRatio(simulatedDataSeriesXUnits, existingRecordXUnits); // Calls your getUnitsScalingRatio
+                    const yUnitsRatio = getUnitsScalingRatio(simulatedDataSeriesYUnits, existingRecordYUnits); // Calls your getUnitsScalingRatio
+                    const zUnitsRatio = getUnitsScalingRatio(simulatedDataSeriesZUnits, existingRecordZUnits); // Calls your getUnitsScalingRatio
 
                     // Scale the dataseries
                     scaleDataseriesDict_PYTHON(dataDictFilled, xUnitsRatio, yUnitsRatio, zUnitsRatio); // Calls your scaleDataseriesDict_PYTHON
