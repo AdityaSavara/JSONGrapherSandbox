@@ -686,7 +686,8 @@
           const suffix = index === dataSets.length - 1 ? "\r\n" : "";
           csv += ",y" + idx + suffix;
         });
-
+        dataSets[0].x = dataSets[0].x || []; //create the x array if it does not exist (for equation dataseries etc.)
+        dataSets[0].y = dataSets[0].y || []; //create the y array if it does not exist (for equation dataseries etc.)
         dataSets[0].x.forEach((x, _index) => {
           let extraYValues = "";
           for (let i = 0; i < dataSets.length; i++) {
