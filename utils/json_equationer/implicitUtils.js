@@ -551,3 +551,5 @@ export function executeImplicitDataSeriesOperations(figDict, simulateAllSeries =
     }
     return figDict;
 }
+
+window.executeImplicitDataSeriesOperations = executeImplicitDataSeriesOperations; //line needed for index.html to see the function after importing.
