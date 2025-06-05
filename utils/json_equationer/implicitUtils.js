@@ -336,7 +336,7 @@ export function evaluateEquationForDataSeriesByIndex(figDict, dataSeriesIndex, v
             // Call the evaluateEquation method
             const equationDictEvaluated = equationObject.evaluateEquation(verbose);
 
-            let graphical_dimensionality = 2;
+            let graphical_dimensionality = 2; // start with default, overwrite if provided in equationDict.
             if (equationDictEvaluated && "graphical_dimensionality" in equationDictEvaluated) {
                 graphical_dimensionality = equationDictEvaluated.graphical_dimensionality;
             }
@@ -369,27 +369,27 @@ export function evaluateEquationForDataSeriesByIndex(figDict, dataSeriesIndex, v
 
                 const existingRecordXUnits = separateLabelTextFromUnits(existingRecordXLabel).units; // Calls your separateLabelTextFromUnits
                 const existingRecordYUnits = separateLabelTextFromUnits(existingRecordYLabel).units; // Calls your separateLabelTextFromUnits
-                const existingRecordZUnits = separateLabelTextFromUnits(existingRecordZLabel).units; // Calls your separateLabelTextFromUnits
+                //const existingRecordZUnits = separateLabelTextFromUnits(existingRecordZLabel).units; // Calls your separateLabelTextFromUnits
 
 
                 if (existingRecordXUnits !== '' || existingRecordYUnits !== '' || existingRecordZUnits !== '') {
                     // Now, get the units from the evaluated equation output.
                     const simulatedDataSeriesXUnits = separateLabelTextFromUnits(dataDictFilled.x_label).units; // Calls your separateLabelTextFromUnits
                     const simulatedDataSeriesYUnits = separateLabelTextFromUnits(dataDictFilled.y_label).units; // Calls your separateLabelTextFromUnits
-                    const simulatedDataSeriesZUnits = separateLabelTextFromUnitsFromPython(dataDictFilled.z_label || "").units; // Calls your separateLabelTextFromUnits
+                    //const simulatedDataSeriesZUnits = separateLabelTextFromUnits(dataDictFilled.z_label).units; // Calls your separateLabelTextFromUnits
 
                     const xUnitsRatio = getUnitsScalingRatio(simulatedDataSeriesXUnits, existingRecordXUnits); // Calls your getUnitsScalingRatio
                     const yUnitsRatio = getUnitsScalingRatio(simulatedDataSeriesYUnits, existingRecordYUnits); // Calls your getUnitsScalingRatio
-                    const zUnitsRatio = getUnitsScalingRatio(simulatedDataSeriesZUnits, existingRecordZUnits); // Calls your getUnitsScalingRatio
+                    //const zUnitsRatio = getUnitsScalingRatio(simulatedDataSeriesZUnits, existingRecordZUnits); // Calls your getUnitsScalingRatio
 
                     // Scale the dataseries
-                    scaleDataseriesDict(dataDictFilled, xUnitsRatio, yUnitsRatio, zUnitsRatio); // Calls your scaleDataseriesDict
+                    scaleDataseriesDict(dataDictFilled, xUnitsRatio, yUnitsRatio); // Calls your scaleDataseriesDict
                 }
 
                 // Remove the "x_label", "y_label", and "z_label" to be compatible with Plotly.
                 delete dataDictFilled.x_label;
                 delete dataDictFilled.y_label;
-                delete dataDictFilled.z_label; // Use delete operator for properties
+                //delete dataDictFilled.z_label; // Use delete operator for properties
             }
 
             if (!dataDictFilled.type) {
