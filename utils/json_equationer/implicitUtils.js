@@ -1,7 +1,7 @@
 // Import equation class from equation_creator.js
 import { Equation } from './equation_creator.js'; // Adjust the path as needed
-import {getUnitsScalingRatio} from '../unitScaling.js' 
-import {scaleDataseriesDict} from '../unitScaling.js' 
+import {getUnitsScalingRatio} from '../unitScaling.js'; 
+import {scaleDataseriesDict} from '../unitScaling.js'; 
 
 /**
  * Updates the `x_range_default` values for all simulate and equation data series
