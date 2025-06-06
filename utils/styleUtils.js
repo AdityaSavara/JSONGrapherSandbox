@@ -243,6 +243,19 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
         }
     }
 
+    if (colorscale.endsWith("_r")) {
+        console.warn("Warning: Colorscale reverse with _r is not currently supported by browser-based Plotly. Colorscale reversing has been removed.");
+        colorscale = colorscale.slice(0, -2);
+    }
+
+    //in python, plotly colorscale can be lowercase. In Javascript, first letter must be capitalized.
+    // Capitalizes the first letter of the string if it's not already capitalized.
+    if (colorscale) {
+    colorscale = colorscale.charAt(0).toUpperCase() + colorscale.slice(1);
+    }
+
+
+    
     ({ dataSeries, colorscaleStructure} = determineColorScaleStructureFirstHalf(dataSeries, traceStyle, colorscale));  
     
     if (traceStyle in stylesCollectionDict) {
