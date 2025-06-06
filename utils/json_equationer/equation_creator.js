@@ -312,7 +312,6 @@ class Equation {
         if (graphicalDimensionality === 3) {
             this.equationDict.z_units = evaluatedDict.z_units; // Direct property assignment
             this.equationDict.z_points = evaluatedDict.z_points; // Direct property assignment
-            console.log("line 223 (JS equivalent - z_points):", this.equationDict.z_points);
         }
 
         if (removeEquationFields === true) {
