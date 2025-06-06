@@ -509,6 +509,8 @@ function applyLayoutStyleToPlotlyDict(figDict, layoutStyleToApply = "default") {
 
 export {parsePlotStyle};
 export {applyPlotStyleToPlotlyDict};
+export {copyJson};
 
 window.parsePlotStyle = parsePlotStyle;
 window.applyPlotStyleToPlotlyDict = applyPlotStyleToPlotlyDict;
+window.copyJson = copyJson;
