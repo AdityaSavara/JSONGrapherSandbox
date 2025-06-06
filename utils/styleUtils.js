@@ -303,6 +303,7 @@ function determineColorScaleStructureFirstHalf(dataSeries, traceStyle, colorscal
 }
 
 function determineColorScaleStructureSecondHalf(dataSeries, traceStyle, colorscale) {
+    let colorscaleStructure = ''; //Ok to assign as new, because this function is only entered if it is already an empty string.
     if (dataSeries.mode.includes("markers") || dataSeries.mode.includes("markers+lines") || dataSeries.mode.includes("lines+markers")) {
         colorscaleStructure = "marker";
     } else if (dataSeries.mode.includes("lines")) {
@@ -310,7 +311,6 @@ function determineColorScaleStructureSecondHalf(dataSeries, traceStyle, colorsca
     } else if (dataSeries.type.includes("bar")) {
         colorscaleStructure = "marker";
     }
-
     return { dataSeries, colorscaleStructure };
 }
 
