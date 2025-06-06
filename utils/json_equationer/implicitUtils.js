@@ -1,5 +1,7 @@
 // Import equation class from equation_creator.js
 import { Equation } from './equation_creator.js'; // Adjust the path as needed
+import {getUnitsScalingRatio} from '../unitScaling.js'; 
+import {scaleDataseriesDict} from '../unitScaling.js'; 
 
 /**
  * Updates the `x_range_default` values for all simulate and equation data series
@@ -160,8 +162,6 @@ export function getFigDictRanges(figDict, skipEquations = false, skipSimulations
 }
 
 
-// --- Placeholder functions for your existing JavaScript implementations ---
-
 // --- Placeholder for JSONGrapher.units_list equivalents ---
 // You need to replace these with your actual units data in JavaScript.
 // For example, if your units data is loaded from a JSON file or defined elsewhere,
@@ -173,7 +173,9 @@ const units_list_names_PYTHON = new Set(); // Example: new Set(["meter", "second
 
 
 /**
- * Parses a units string to remove "s" if the string is found as an exact match without an "s" in the units lists.
+* As of 6/4/2025, the below function has not yet been implemented. However, to implement it,
+* we would get the units_list from the UUC javascript module.
+* Parses a units string to remove "s" if the string is found as an exact match without an "s" in the units lists.
  * This function uses a placeholder for the `units_list` data (units_list_ids_PYTHON, units_list_names_PYTHON)
  * which you need to define with your actual unit data.
  *
@@ -272,87 +274,15 @@ export function separateLabelTextFromUnits(labelWithUnits) {
 }
 
 /**
- * **_PYTHON**
- * Placeholder for `get_units_scaling_ratio`.
- * This function should return a scaling factor to convert from `fromUnits` to `toUnits`.
- * You MUST implement the actual unit conversion logic.
- *
- * @param {string} fromUnits - The units to convert from.
- * @param {string} toUnits - The units to convert to.
- * @returns {number} The scaling ratio. Returns 1 if conversion is not possible or units are empty.
- */
-function getUnitsScalingRatio_PYTHON(fromUnits, toUnits) {
-    // Implement your unit conversion logic here (e.g., "m" to "cm" would be 100)
-    console.warn("getUnitsScalingRatio_PYTHON is a placeholder. Implement actual unit conversion logic.");
-    if (fromUnits === toUnits || fromUnits === "" || toUnits === "") {
-        return 1;
-    }
-    // Example: simple hardcoded conversion (replace with robust logic)
-    if (fromUnits === "m" && toUnits === "cm") return 100;
-    if (fromUnits === "cm" && toUnits === "m") return 0.01;
-    // Add more conversion rules as needed
-    return 1; // Default to no scaling if conversion not defined
-}
-
-/**
- * **_PYTHON**
- * Placeholder for `scale_dataseries_dict`.
- * This function should scale the x, y (and z) values within a data series dictionary.
- * You MUST implement the actual scaling logic.
- *
- * @param {object} dataSeriesDict - The data series dictionary to scale.
- * @param {number} num_to_scale_x_values_by - The factor to scale x values by.
- * @param {number} num_to_scale_y_values_by - The factor to scale y values by.
- * @param {number} [num_to_scale_z_values_by=1] - The factor to scale z values by (optional).
- */
-function scaleDataseriesDict_PYTHON(dataSeriesDict, num_to_scale_x_values_by, num_to_scale_y_values_by, num_to_scale_z_values_by = 1) {
-    console.warn("scaleDataseriesDict_PYTHON is a placeholder. Implement actual data scaling logic.");
-
-    if (dataSeriesDict.x && num_to_scale_x_values_by !== 1) {
-        dataSeriesDict.x = dataSeriesDict.x.map(val => val * num_to_scale_x_values_by);
-    }
-    if (dataSeriesDict.y && num_to_scale_y_values_by !== 1) {
-        dataSeriesDict.y = dataSeriesDict.y.map(val => val * num_to_scale_y_values_by);
-    }
-    if (dataSeriesDict.z && num_to_scale_z_values_by !== 1) { // Check for z and its scaling factor
-        dataSeriesDict.z = dataSeriesDict.z.map(val => val * num_to_scale_z_values_by);
-    }
-}
-
-/**
- * **_PYTHON**
- * Placeholder for `simulate_as_needed_in_fig_dict`.
+  * Placeholder for `simulate_as_needed_in_fig_dict`.
  * This function should perform simulations for applicable series.
- * You MUST implement the actual simulation logic.
+ * To implement such a function, we may want to pull logic out of index.html
  *
  * @param {object} figDict - The figure dictionary containing data series.
  * @returns {object} The figure dictionary with simulated data.
  */
-function simulateAsNeededInFigDict_PYTHON(figDict) {
-    // This is a placeholder. You need to implement your simulation logic here.
-    console.warn("simulateAsNeededInFigDict_PYTHON is a placeholder. Implement your simulation logic.");
-    // Example: iterate through figDict.data and if 'simulate' field exists,
-    // generate 'x', 'y', (and 'z') points.
-    const simulatedFigDict = JSON.parse(JSON.stringify(figDict));
-    for (const dataSeries of simulatedFigDict.data || []) {
-        if (dataSeries.simulate) {
-            // Placeholder simulation: just provide some dummy data
-            // In a real scenario, this would involve complex calculations based on dataSeries.simulate properties
-            const minX = dataSeries.simulate.x_range_default ? dataSeries.simulate.x_range_default[0] : 0;
-            const maxX = dataSeries.simulate.x_range_default ? dataSeries.simulate.x_range_default[1] : 10;
-            const numPoints = 100; // Example number of points
-            dataSeries.x = Array.from({ length: numPoints }, (_, i) => minX + (i / (numPoints - 1)) * (maxX - minX));
-            dataSeries.y = dataSeries.x.map(val => val * 2 + Math.random() * (maxX - minX) * 0.1); // Example: y = 2x + noise
-            if (dataSeries.simulate.graphical_dimensionality === 3) {
-                 dataSeries.z = dataSeries.x.map(val => Math.sin(val) * 5); // Example: z = sin(x)
-            }
-        }
-    }
-    return simulatedFigDict;
-}
+// function simulateAsNeededInFigDict(figDict) 
 
-
-// --- Converted core functions (these call the _PYTHON placeholders) ---
 
 /**
  * Iterates through all data series in a fig_dict and evaluates any 'equation' fields.
@@ -406,7 +336,7 @@ export function evaluateEquationForDataSeriesByIndex(figDict, dataSeriesIndex, v
             // Call the evaluateEquation method
             const equationDictEvaluated = equationObject.evaluateEquation(verbose);
 
-            let graphical_dimensionality = 2;
+            let graphical_dimensionality = 2; // start with default, overwrite if provided in equationDict.
             if (equationDictEvaluated && "graphical_dimensionality" in equationDictEvaluated) {
                 graphical_dimensionality = equationDictEvaluated.graphical_dimensionality;
             }
@@ -439,27 +369,27 @@ export function evaluateEquationForDataSeriesByIndex(figDict, dataSeriesIndex, v
 
                 const existingRecordXUnits = separateLabelTextFromUnits(existingRecordXLabel).units; // Calls your separateLabelTextFromUnits
                 const existingRecordYUnits = separateLabelTextFromUnits(existingRecordYLabel).units; // Calls your separateLabelTextFromUnits
-                const existingRecordZUnits = separateLabelTextFromUnits(existingRecordZLabel).units; // Calls your separateLabelTextFromUnits
+                //const existingRecordZUnits = separateLabelTextFromUnits(existingRecordZLabel).units; // Calls your separateLabelTextFromUnits
 
 
                 if (existingRecordXUnits !== '' || existingRecordYUnits !== '' || existingRecordZUnits !== '') {
                     // Now, get the units from the evaluated equation output.
                     const simulatedDataSeriesXUnits = separateLabelTextFromUnits(dataDictFilled.x_label).units; // Calls your separateLabelTextFromUnits
                     const simulatedDataSeriesYUnits = separateLabelTextFromUnits(dataDictFilled.y_label).units; // Calls your separateLabelTextFromUnits
-                    const simulatedDataSeriesZUnits = separateLabelTextFromUnitsFromPython(dataDictFilled.z_label || "").units; // Calls your separateLabelTextFromUnits
+                    //const simulatedDataSeriesZUnits = separateLabelTextFromUnits(dataDictFilled.z_label).units; // Calls your separateLabelTextFromUnits
 
-                    const xUnitsRatio = getUnitsScalingRatio_PYTHON(simulatedDataSeriesXUnits, existingRecordXUnits); // Calls your getUnitsScalingRatio_PYTHON
-                    const yUnitsRatio = getUnitsScalingRatio_PYTHON(simulatedDataSeriesYUnits, existingRecordYUnits); // Calls your getUnitsScalingRatio_PYTHON
-                    const zUnitsRatio = getUnitsScalingRatio_PYTHON(simulatedDataSeriesZUnits, existingRecordZUnits); // Calls your getUnitsScalingRatio_PYTHON
+                    const xUnitsRatio = getUnitsScalingRatio(simulatedDataSeriesXUnits, existingRecordXUnits); // Calls your getUnitsScalingRatio
+                    const yUnitsRatio = getUnitsScalingRatio(simulatedDataSeriesYUnits, existingRecordYUnits); // Calls your getUnitsScalingRatio
+                    //const zUnitsRatio = getUnitsScalingRatio(simulatedDataSeriesZUnits, existingRecordZUnits); // Calls your getUnitsScalingRatio
 
                     // Scale the dataseries
-                    scaleDataseriesDict_PYTHON(dataDictFilled, xUnitsRatio, yUnitsRatio, zUnitsRatio); // Calls your scaleDataseriesDict_PYTHON
+                    scaleDataseriesDict(dataDictFilled, xUnitsRatio, yUnitsRatio); // Calls your scaleDataseriesDict
                 }
 
                 // Remove the "x_label", "y_label", and "z_label" to be compatible with Plotly.
                 delete dataDictFilled.x_label;
                 delete dataDictFilled.y_label;
-                delete dataDictFilled.z_label; // Use delete operator for properties
+                //delete dataDictFilled.z_label; // Use delete operator for properties
             }
 
             if (!dataDictFilled.type) {
@@ -603,12 +533,14 @@ export function executeImplicitDataSeriesOperations(figDict, simulateAllSeries =
             figDictForImplicit = updateImplicitDataSeriesXRanges(figDictForImplicit, figDictRanges);
         }
 
-        if (simulateAllSeries) {
-            // Perform simulations for applicable series
-            figDictForImplicit = simulateAsNeededInFigDict_PYTHON(figDictForImplicit); // Calls your simulateAsNeededInFigDict_PYTHON
-            // Copy data back to figDict, ensuring ranges remain unchanged
-            figDict = updateImplicitDataSeriesData(figDict, figDictForImplicit, true, true);
-        }
+        // 6/4/25 Currently, for JSONGrapher web version, simulations are only performed in index.html
+        // It may be a good idea to refactor, eventually, to put the simulation call here, like in the python version of JSONGrapher.
+        // if (simulateAllSeries) {
+        //     // Perform simulations for applicable series
+        //     figDictForImplicit = simulateAsNeededInFigDict(figDictForImplicit); // Calls your simulateAsNeededInFigDict_PYTHON
+        //     // Copy data back to figDict, ensuring ranges remain unchanged
+        //     figDict = updateImplicitDataSeriesData(figDict, figDictForImplicit, true, true);
+        // }
 
         if (evaluateAllEquations) {
             // Evaluate equations that require computation
@@ -619,3 +551,5 @@ export function executeImplicitDataSeriesOperations(figDict, simulateAllSeries =
     }
     return figDict;
 }
+
+window.executeImplicitDataSeriesOperations = executeImplicitDataSeriesOperations; //line needed for index.html to see the function after importing.
