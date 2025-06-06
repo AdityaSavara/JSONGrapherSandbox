@@ -148,15 +148,15 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
     if (traceStyleToApply !== "") {
         dataSeries.trace_style = traceStyleToApply;
     } else {
-        let traceStyle = dataSeries.trace_style || "";
+        traceStyleToApply = dataSeries.trace_style || "";
         // If "none", return unchanged
-        if (String(traceStyle).toLowerCase() === "none") {
+        if (String(traceStyleToApply).toLowerCase() === "none") {
             return dataSeries;
         }
 
         // If traceStyle is a dictionary, set traceStyleToApply to it
-        if (typeof traceStyle === "object") {
-            traceStyleToApply = traceStyle;
+        if (typeof traceStyleToApply === "object") {
+            traceStyleToApply = traceStyleToApply;
         }
     }
 
@@ -177,6 +177,21 @@ function applyTraceStyleToSingleDataSeries(dataSeries, traceStylesCollection = "
             traceStyleToApply = "default";
         }
     }
+
+
+    // Because the 3D traces will not plot correctly unless recognized,
+    // we have a hardcoded case for the situation where a 3D dataset is received without a plot style.
+    if (traceStylesCollection === "default") {
+        if (traceStyleToApply === "") {
+            if (dataSeries?.z) {  // Checking if 'z' exists in dataSeries
+                dataSeries["trace_style"] = "scatter3d";
+                const uid = dataSeries?.uid || "";
+                const name = dataSeries?.name || "";
+                console.warn(`Warning: A dataseries was found with no trace_style but with a 'z' field. uid: ${uid}. name: ${name}. The trace style for this dataseries is being set to scatter3d.`);
+            }
+        }
+    }
+
 
     // Remove existing formatting before applying new formatting
     //dataSeries = removeTraceStyleFromSingleDataSeries(dataSeries);
@@ -481,7 +496,6 @@ function applyLayoutStyleToPlotlyDict(figDict, layoutStyleToApply = "default") {
 
 export {parsePlotStyle};
 export {applyPlotStyleToPlotlyDict};
-console.log("parsePlotStyle loaded:", parsePlotStyle);
 
 window.parsePlotStyle = parsePlotStyle;
 window.applyPlotStyleToPlotlyDict = applyPlotStyleToPlotlyDict;
