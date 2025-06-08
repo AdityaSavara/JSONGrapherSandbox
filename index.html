@@ -126,10 +126,6 @@
       // STEP 7: The plotly template is rendered on the browser
 
 
-
-
-
-
       // Global Variables
       let globalData = null;
       let plotlyTemplate = null;
@@ -138,6 +134,10 @@
       let urlReceived = "" //Start as an empty string. Will use it if needed. Prefer to use document.getElementById("load-from-url").value, but could not get it to work right for download button area.
       let schemaURL = "";
       let schemaTemplateURL = "";
+      const url = window.location.href; // Get the current page URL
+      const params = new URLSearchParams(new URL(url).search);
+      const urlParamsString = params.get("fromUrl"); //default ends up as null.
+
 
       // Initializing the AJV validator
       const ajv = new Ajv();
@@ -769,7 +769,8 @@
       // A function that will create a bz2 and encoded URL for the final graph.
       // This approach was abandoned because the URL strings were too long for both some browsers and some webservers limits.
       function jsonToUrl(json) {
-          const prefix = "http://www.jsongrapher.com/?=";       
+          const url = window.location.href.split('?')[0]; // gets url from browser and removes query parameters
+          const prefix = `${url}?fromUrl=`;
           // Convert JSON to a string
           let jsonString = JSON.stringify(json);         
           // Concatenate with prefix and apply URL encoding, which is like the python urllib.parse.quote(json_string) and urllib.parse.unquote(encoded_string)
@@ -781,8 +782,8 @@
 
       // A function that will create a URL string that allows graphing from a remote json.
       function createCopyUrlLink(jsonURL) {
-          console.log("index.html createCopyUrlLink", jsonURL);
-          const prefix = "http://www.jsongrapher.com/?=";       
+          const url = window.location.href.split('?')[0]; // gets url from browser and removes query parameters
+          const prefix = `${url}?fromUrl=`;
           // Concatenate with prefix and apply URL encoding, which is like the python urllib.parse.quote(json_string) and urllib.parse.unquote(encoded_string)
           let urlString = prefix + encodeURIComponent(jsonURL); 
           // wanted to Compress using Bzip2, but didn't succeed in importing a JS version without problems.
@@ -959,8 +960,20 @@
         });
       }
 
-      ///############################ BELOW IS THE MAIN BLOCK OF CODE FOR JSON GRAPHER ##################################
 
+      async function loadFromUrlParams(urlInput){
+        if (isValidUrl(urlInput)){ 
+          const url = parseUrl(urlInput);
+          urlReceived = url //This line is populating a global variable. 
+          console.log("Index.html loadFromURLButton 2", url)
+          loadAndPlotData(url, "url");
+        } else {
+          console.error("No URL entered.");
+          errorDiv.innerText += "Error: Please enter a valid URL.\n";
+        }
+      };
+      ///############################ BELOW IS THE MAIN BLOCK OF CODE FOR JSON GRAPHER ##################################
+      if (urlParamsString){ loadFromUrlParams(urlParamsString)};
       // STEP 0: Prepare the 'universal' schemas occurs inside initializeJSONGrapher
       initializeJSONGrapher()
         .then((resp) => {
