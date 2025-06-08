@@ -499,8 +499,8 @@
       async function getAndRunSimulateScript(dataSet, jsonified, index) {
           return new Promise(async (resolve, reject) => {
         try {
-            console.log("Starting getAndRunSimulateScript function...");
-            console.log("Dataset received:", dataSet);
+            //console.log("Starting getAndRunSimulateScript function...");
+            //console.log("Dataset received:", dataSet);
 
             // Create a script element
 
@@ -508,19 +508,19 @@
 
             // Debug the URL being parsed and fetched
             const scriptUrl = parseUrl(dataSet.simulate.model);
-            console.log("Parsed script URL:", scriptUrl);
+            //console.log("Parsed script URL:", scriptUrl);
 
             // Get the raw content from the specified URL
             const data = await getRawContent(scriptUrl);
-            console.log("Raw script content fetched successfully.");
+            //console.log("Raw script content fetched successfully.");
 
             // Attach the content to the script element
             loadScript.textContent = data;
-            console.log("Script element created and content appended.");
+            //console.log("Script element created and content appended.");
 
             // Add the script to the document head
             document.getElementsByTagName("head")[0].appendChild(loadScript);
-            console.log("Script added to the document head.");
+            //console.log("Script added to the document head.");
 
             // Debug if simulate function is available globally
             if (typeof simulate !== "function") {
@@ -531,7 +531,7 @@
             // Execute the simulate function with the dataset
 
             const simulatedData = await simulate(dataSet);
-            console.log("Simulate function output received successfully.");
+            //console.log("Simulate function output received successfully.");
 
             // Check if simulatedData is an array
             if (Array.isArray(simulatedData)) {
@@ -539,7 +539,7 @@
                 console.log("Simulate function failed, simulate function log:", JSON.stringify(simulatedData));
             } else {
                 // Log the simulated data for non-array JSON types
-                console.log("Simulated Data:", JSON.stringify(simulatedData));
+                //console.log("Simulated Data:", JSON.stringify(simulatedData));
             }            
 
             // Resolve the Promise with the simulated data
@@ -620,8 +620,12 @@
       function mergeSimulationData(simulationResult, jsonified, index) {
         return new Promise((resolve, reject) => {
           try {
-            jsonified.layout.xaxis.title.text = simulationResult.data.x_label;
-            jsonified.layout.yaxis.title.text = simulationResult.data.y_label;
+            if(!jsonified.layout.xaxis.title.text){ //Take the label from the simulation if there isn't one already.
+              jsonified.layout.xaxis.title.text = simulationResult.data.x_label;
+            }
+            if(!jsonified.layout.yaxis.title.text){ //Take the label from the simulation if there isn't one already.
+              jsonified.layout.yaxis.title.text = simulationResult.data.y_label;
+            }
             jsonified.data[index].x = simulationResult.data.x;
             jsonified.data[index].y = simulationResult.data.y;
             resolve(jsonified);
@@ -1104,17 +1108,19 @@
           )}\n`;
         } else {
           let _jsonified = jsonified;
+          console.log("in loadAndPlotData, before mergeObjects", copyJson(_jsonified.layout));
           if (Object.keys(schema_template).length !== 0) {
             _jsonified = mergeObjects(jsonified, schema_template);
           }
           // If the data is valid against the schema, then we can proceed to the next step
           // if necessary create download button with json
           // STEP 4 and STEP 5 is done in the prepareForPlotting function
+          console.log("in loadAndPlotData, before prepare for Plotting", copyJson(_jsonified.layout));
           const res = await prepareForPlotting(_jsonified, recentFileName);
           // STEP 6: Provide file with converted units for download as JSON and CSV by buttons
           appendDownloadButtons(res.downloadData, res.fileName);
           // STEP 7: The create a plotly JSON, clean it, and render it on the browser
-          console.log("in loadAndPlotData, about to plot.", copyJson(res.data));
+          console.log("in loadAndPlotData, about to plot.", copyJson(res.data.layout));
           plot_with_plotly(res.data);
         }
         errorDiv.innerText = errorDiv.innerText.replace(loadingMessage,"");
@@ -1128,7 +1134,8 @@
             // Checks if the Jsonified is the first file uploaded
             if (!globalData) {
               let _jsonified = JSON.parse(JSON.stringify(jsonified)); //make a local copy
-              globalData = _jsonified; //populate global figDict since this is the first record received.
+              globalData = copyJson(_jsonified); //populate global figDict since this is the first record received.
+              console.log("index.html, top of prepareForPlotting", copyJson(globalData.layout));
               
               // Get the unit from the label
               const xUnit = getUnitFromLabel(_jsonified.layout.xaxis.title.text);
@@ -1144,38 +1151,46 @@
               // On 6/4/25, a call to the function executeImplicitDataSeriesOperations was added here to evaluate equations.
               // In the longterm, the simulation logic should be moved into executeImplicitDataSeriesOperations
               _jsonified = executeImplicitDataSeriesOperations(_jsonified); //_jsonified is a figDict.
-              console.log("Index.html prepareForPlotting, Before first dataset simulation. _jsonified.data", copyJson(_jsonified.data));
+              console.log("Index.html prepareForPlotting, Before first dataset simulation. _jsonified.layout", copyJson(_jsonified.layout));
               //This loop iterates across data_series dictionary objects objects to see if any require simulation.
               //TODO: this loop's commands should be moved into executeImplicitDataSeriesOperations. There are two loops like this in index.html
               for (const dataSet of _jsonified.data) { 
                 const index = _jsonified.data.indexOf(dataSet);
                 const hasSimulate = checkSimulate(dataSet);
                 if (hasSimulate) {
+                  console.log("Index.html in prepareForPlotting, globalData.layout 0", copyJson(globalData.layout));
+                  console.log("Index.html in prepareForPlotting, _jsonified.layout 0", copyJson(_jsonified.layout));       
                   const simulatedData = await getAndRunSimulateScript(
                     dataSet,
                     _jsonified,
                     index
                   );
-                  console.log("in index.html, after first simulation, dataSet", dataSet);
-                  console.log("in index.html, after first simulation, simulatedData", simulatedData);                  
                   // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
+                  console.log("Index.html in prepareForPlotting, globalData.layout 1", copyJson(globalData.layout));
+                  console.log("Index.html in prepareForPlotting, _jsonified.layout 1", copyJson(_jsonified.layout));       
                   const convertSimulatedDataUnits =
                     await maybeConvertSimulatedDataUnits(
                       _jsonified,
                       simulatedData,
                       index
                     );
-                  console.log("Index.html prepareForPlotting, after first dataset simulation. simulatedData", copyJson(simulatedData));
+
+                  console.log("Index.html in prepareForPlotting, globalData.layout 2", copyJson(globalData.layout));
+                  console.log("Index.html in prepareForPlotting, _jsonified.layout 2", copyJson(_jsonified.layout));                           
                   const simulatedJsonified = await mergeSimulationData( //This function call populates the correct data series in jsonified.
                     convertSimulatedDataUnits,
                     _jsonified,
                     index
                   );
+                  console.log("Index.html in prepareForPlotting, globalData.layout 3", copyJson(globalData.layout));
+                  console.log("Index.html in prepareForPlotting, _jsonified.layout 3", copyJson(_jsonified.layout));                         
                   // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
                   // There is  no STEP 5 at this line, because the first dataset provided by the user is used to define the units of GlobalData.
                 }
               }
               //After going through all datasets for implicit dataseries updates, we set globalData equal to the updated _jsonified, since this is the first record.
+              console.log("Index.html in prepareForPlotting, globalData.layout", globalData.layout);
+              console.log("Index.html in prepareForPlotting, _jsonified.layout", _jsonified.layout);
               globalData = _jsonified
 
               //Finally, return the objects that have been prepared for plotting and downloading.
@@ -1228,18 +1243,16 @@
                       jsonified,
                       index
                     );
-                    console.log("in index.html, after second simulation, dataSet", dataSet);
-                    console.log("in index.html, after second simulation, simulatedData", simulatedData);
                     //This changes the simulated data to have units matching the json object it came from (that is, the layout field)
                     convertSimulatedDataUnits =
                       await maybeConvertSimulatedDataUnits(
-                        jsonified,
+                        _jsonified,
                         simulatedData,
                         index
                       );
                     simulatedJsonified = await mergeSimulationData(
                       convertSimulatedDataUnits,
-                      jsonified,
+                      _jsonified,
                       index
                     );
                     // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
