@@ -134,9 +134,9 @@
       let urlReceived = "" //Start as an empty string. Will use it if needed. Prefer to use document.getElementById("load-from-url").value, but could not get it to work right for download button area.
       let schemaURL = "";
       let schemaTemplateURL = "";
-      const url = window.location.href; // Get the current page URL
-      const params = new URLSearchParams(new URL(url).search);
-      const urlParamsString = params.get("fromUrl"); //default ends up as null.
+      let url = window.location.href; // Get the current page URL
+      let params = new URLSearchParams(new URL(url).search);
+      let urlParamsString = params.get("fromUrl"); //default ends up as null.
 
 
       // Initializing the AJV validator
@@ -148,6 +148,7 @@
       // A function that clears the data from global variables and removes the error text and plotly chart
       function clearData() {
         globalData = null;
+        urlParamsString = null; //empty this global variable.
         document.getElementById("errorDiv").innerHTML = "";
         document.getElementById("downloadButtonsContainer").innerHTML = "";
         document.getElementById("file-selector").value = "";
