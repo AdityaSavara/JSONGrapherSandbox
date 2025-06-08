@@ -131,12 +131,12 @@
       let plotlyTemplate = null;
       let schema = null;
       let recentFileName = null;
-      let urlReceived = "" //Start as an empty string. Will use it if needed. Prefer to use document.getElementById("load-from-url").value, but could not get it to work right for download button area.
       let schemaURL = "";
       let schemaTemplateURL = "";
-      let url = window.location.href; // Get the current page URL
+      let url = window.location.href; // Get the current page URL         
       let params = new URLSearchParams(new URL(url).search);
       let urlParamsString = params.get("fromUrl"); //default ends up as null.
+      let urlReceived = "" //Start as an empty string. Will populate this later from the user's input or from the urlParamsString
 
 
       // Initializing the AJV validator
@@ -149,6 +149,7 @@
       function clearData() {
         globalData = null;
         urlParamsString = null; //empty this global variable.
+        urlReceived = null; //empty this global variable.
         document.getElementById("errorDiv").innerHTML = "";
         document.getElementById("downloadButtonsContainer").innerHTML = "";
         document.getElementById("file-selector").value = "";
@@ -852,7 +853,8 @@
         // Create Download URL button (technically a copy button)
         // Only show this button if someone has loaded from url.
         let downloadURLButton = null // initializing.
-        if (urlReceived !== ""){ 
+        if (urlReceived){  //use "if urlReceived" because it can be null or "" and this will catch both cases.
+          console.log("In Index.html addpendDownloadButtons, urlReceived", urlReceived)
           downloadURLButton = createCopyURLButton(urlReceived);
           // Below was when I tried to put the whole JSON record into the URL, but that was quickly too long for webservers and browsers.
           //const downloadURLButton = createCopyURLButton(jsonified);
@@ -870,7 +872,7 @@
         // Add download CSV button
         buttonsContainer.appendChild(downloadCSVButton);
         // Add download URL button, but only if load from url was used.
-        if (urlReceived !== ""){ 
+        if (urlReceived){  //use "if urlReceived" because it can be null or "" and this will catch both cases.
           buttonsContainer.appendChild(downloadURLButton);
         }
       }
@@ -1069,11 +1071,9 @@
           try {
             // try to parse the file as json
             jsonified = jsonifyData(fileType, dataLoaded);
-            console.log("Index.html loadAndPlotData after jsonified 1", jsonified)
           } catch (e) {
             errorDiv.innerText += `Error: Data record could not be converted to JSON. If it is in a zipfile, unzip before uploading. Error Details: ${e.message} \n`;
           }
-          console.log("Index.html loadAndPlotData after jsonified 1", jsonified)
         }
         // Checking if the uploaded data is valid against the schema
         // STEP 3: Check if the jsonified object is a valid JSON file against the schema
