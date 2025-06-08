@@ -635,6 +635,20 @@
         });
       }
 
+      async function simulateByIndexAndPopulateFigDict(_jsonified, index) {
+        console.log("Index.html simulateByIndexAndPopulateFigDict, _josnified", _jsonified);
+        const dataSet = _jsonified.data[index]; // Retrieve dataSet using the provided index
+        if (!dataSet) {
+          throw new Error(`No dataSet found at index ${index}`);
+        }
+        const simulatedData = await getAndRunSimulateScript(dataSet, _jsonified, index);         
+        const convertSimulatedDataUnits = await maybeConvertSimulatedDataUnits(_jsonified, simulatedData, index);
+        // This function call populates the correct data series in _jsonified.
+        const simulatedJsonified = await mergeSimulationData(convertSimulatedDataUnits, _jsonified, index); 
+        return {_jsonified, simulatedJsonified}
+
+      }
+
       // A function that visualizes the data with plotly
       function plot_with_plotly(figDict) {
         let plotStyle = { layout_style: "", trace_styles_collection: "" };
@@ -1158,23 +1172,10 @@
                 const index = _jsonified.data.indexOf(dataSet);
                 const hasSimulate = checkSimulate(dataSet);
                 if (hasSimulate) {
-                  const simulatedData = await getAndRunSimulateScript(
-                    dataSet,
-                    _jsonified,
-                    index
-                  );
-                  // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
-                  const convertSimulatedDataUnits =
-                    await maybeConvertSimulatedDataUnits(
-                      _jsonified,
-                      simulatedData,
-                      index
-                    );
-                  const simulatedJsonified = await mergeSimulationData( //This function call populates the correct data series in jsonified.
-                    convertSimulatedDataUnits,
-                    _jsonified,
-                    index
-                  );
+                  //Below, the "result" has named fields inside, which we will extract.
+                  result = await simulateByIndexAndPopulateFigDict(_jsonified, index);
+                  simulatedJsonified = result.simulatedJsonified
+                  _jsonified = result._jsonified;
                   // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
                   // There is  no STEP 5 at this line, because the first dataset provided by the user is used to define the units of GlobalData.
                 }
@@ -1227,23 +1228,10 @@
                   const index = _jsonified.data.indexOf(dataSet);
                   const hasSimulate = checkSimulate(dataSet);
                   if (hasSimulate) {
-                    const simulatedData = await getAndRunSimulateScript(
-                      dataSet,
-                      _jsonified,
-                      index
-                    );
-                    //This changes the simulated data to have units matching the json object it came from (that is, the layout field)
-                    const convertSimulatedDataUnits =
-                      await maybeConvertSimulatedDataUnits(
-                        _jsonified,
-                        simulatedData,
-                        index
-                      );
-                    const simulatedJsonified = await mergeSimulationData(
-                      convertSimulatedDataUnits,
-                      _jsonified,
-                      index
-                    );
+                    //Below, the "result" has named fields inside, which we will extract.
+                    result = await simulateByIndexAndPopulateFigDict(_jsonified, index);
+                    simulatedJsonified = result.simulatedJsonified
+                    _jsonified = result._jsonified;
                     // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
                     const convertedJsonified = await convertUnits(
                       simulatedJsonified,
