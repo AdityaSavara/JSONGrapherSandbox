@@ -1158,39 +1158,28 @@
                 const index = _jsonified.data.indexOf(dataSet);
                 const hasSimulate = checkSimulate(dataSet);
                 if (hasSimulate) {
-                  console.log("Index.html in prepareForPlotting, globalData.layout 0", copyJson(globalData.layout));
-                  console.log("Index.html in prepareForPlotting, _jsonified.layout 0", copyJson(_jsonified.layout));       
                   const simulatedData = await getAndRunSimulateScript(
                     dataSet,
                     _jsonified,
                     index
                   );
                   // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
-                  console.log("Index.html in prepareForPlotting, globalData.layout 1", copyJson(globalData.layout));
-                  console.log("Index.html in prepareForPlotting, _jsonified.layout 1", copyJson(_jsonified.layout));       
                   const convertSimulatedDataUnits =
                     await maybeConvertSimulatedDataUnits(
                       _jsonified,
                       simulatedData,
                       index
                     );
-
-                  console.log("Index.html in prepareForPlotting, globalData.layout 2", copyJson(globalData.layout));
-                  console.log("Index.html in prepareForPlotting, _jsonified.layout 2", copyJson(_jsonified.layout));                           
                   const simulatedJsonified = await mergeSimulationData( //This function call populates the correct data series in jsonified.
                     convertSimulatedDataUnits,
                     _jsonified,
                     index
                   );
-                  console.log("Index.html in prepareForPlotting, globalData.layout 3", copyJson(globalData.layout));
-                  console.log("Index.html in prepareForPlotting, _jsonified.layout 3", copyJson(_jsonified.layout));                         
                   // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
                   // There is  no STEP 5 at this line, because the first dataset provided by the user is used to define the units of GlobalData.
                 }
               }
               //After going through all datasets for implicit dataseries updates, we set globalData equal to the updated _jsonified, since this is the first record.
-              console.log("Index.html in prepareForPlotting, globalData.layout", globalData.layout);
-              console.log("Index.html in prepareForPlotting, _jsonified.layout", _jsonified.layout);
               globalData = _jsonified
 
               //Finally, return the objects that have been prepared for plotting and downloading.
@@ -1240,23 +1229,23 @@
                   if (hasSimulate) {
                     const simulatedData = await getAndRunSimulateScript(
                       dataSet,
-                      jsonified,
+                      _jsonified,
                       index
                     );
                     //This changes the simulated data to have units matching the json object it came from (that is, the layout field)
-                    convertSimulatedDataUnits =
+                    const convertSimulatedDataUnits =
                       await maybeConvertSimulatedDataUnits(
                         _jsonified,
                         simulatedData,
                         index
                       );
-                    simulatedJsonified = await mergeSimulationData(
+                    const simulatedJsonified = await mergeSimulationData(
                       convertSimulatedDataUnits,
                       _jsonified,
                       index
                     );
                     // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
-                    convertedJsonified = await convertUnits(
+                    const convertedJsonified = await convertUnits(
                       simulatedJsonified,
                       globalData
                     );
