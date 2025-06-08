@@ -913,28 +913,44 @@
           // Assign variables to the two universal schemas.
           schema = resp[0];
           plotlyTemplate = resp[1];
-          // STEP 1: User selects a file from computer or drops a file on the browser
-          // Checks if the browser supports the File API
+           // STEP 1: User selects a file from computer or drops a file on the browser
+           // Checks if the browser supports the File API
+           // User selects a file or drags/drops one
           if (window.FileList && window.File) {
             // Event that fires when the user selects a file from the computer from the choose file button
-            document
-              .getElementById("file-selector")
-              .addEventListener("change", (event) => {
-                // Launches the loadFile function after the file is selected
+            const fileSelector = document.getElementById("file-selector");
+            if (fileSelector) {
+              fileSelector.addEventListener("change", (event) => {
                 loadAndPlotData(event, "change");
               });
-
+            }
             // Event listener for drag and drop
             const dropArea = document.getElementById("file-drop-area");
-            dropArea.addEventListener("dragover", (event) => {
-              event.stopPropagation();
-              event.preventDefault();
-              event.dataTransfer.dropEffect = "copy";
-            });
-            dropArea.addEventListener("drop", (event) => {
-              event.preventDefault();
-              // Launches the loadFile function after the file is dropped
-              loadAndPlotData(event, "drop");
+            if (dropArea) {
+              dropArea.addEventListener("dragover", (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "copy";
+              });
+
+              dropArea.addEventListener("drop", (event) => {
+                event.preventDefault();
+                loadAndPlotData(event, "drop");
+              });
+            }
+          }
+
+          // User inputs URL instead of selecting/dropping a file
+          const loadFromUrlButton = document.getElementById("load-from-url");
+          if (loadFromUrlButton) {
+            loadFromUrlButton.addEventListener("click", () => {
+              const url = document.getElementById("url-input").value.trim();
+              if (url) {
+                loadAndPlotData(url, "url");
+              } else {
+                console.error("No URL entered.");
+                errorDiv.innerText += "Error: Please enter a valid URL.\n";
+              }
             });
           }
         })
@@ -942,6 +958,7 @@
           console.log(e);
           errorDiv.innerText += "Error fetching json-schema files...\n";
         });
+
 
       // This function is called when the user drops a file or uploads it via the input button or drag and drop
       async function loadAndPlotData(event, eventType) {
