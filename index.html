@@ -25,6 +25,7 @@
     <script src="./styles/layout_styles_library.js"></script>
     <script src="./styles/trace_styles_collection_library.js"></script>
     <script type="module"> 
+      import { copyJson } from './utils/styleUtils.js'; 
       import { parsePlotStyle } from './utils/styleUtils.js'; 
       import { applyPlotStyleToPlotlyDict } from './utils/styleUtils.js'; 
       import { cleanJsonFigDict } from './utils/figDictUtils.js'; 
@@ -1113,26 +1114,28 @@
           // STEP 6: Provide file with converted units for download as JSON and CSV by buttons
           appendDownloadButtons(res.downloadData, res.fileName);
           // STEP 7: The create a plotly JSON, clean it, and render it on the browser
+          console.log("in loadAndPlotData, about to plot.", copyJson(res.data));
           plot_with_plotly(res.data);
         }
         errorDiv.innerText = errorDiv.innerText.replace(loadingMessage,"");
       }
 
       // This a function that plots the data on the graph
-      function prepareForPlotting(jsonified, filename) {
+      //the input, jsonified, is the new figDict. globalData is the 'global' figDict.
+      async function prepareForPlotting(jsonified, filename) {
         return new Promise(async (resolve, reject) => {
           try {
             // Checks if the Jsonified is the first file uploaded
             if (!globalData) {
-              let _jsonified = JSON.parse(JSON.stringify(jsonified));
-              globalData = _jsonified;
+              let _jsonified = JSON.parse(JSON.stringify(jsonified)); //make a local copy
+              globalData = _jsonified; //populate global figDict since this is the first record received.
               
               // Get the unit from the label
-              const xUnit = getUnitFromLabel(globalData.layout.xaxis.title.text);
-              const yUnit = getUnitFromLabel(globalData.layout.yaxis.title.text);
+              const xUnit = getUnitFromLabel(_jsonified.layout.xaxis.title.text);
+              const yUnit = getUnitFromLabel(_jsonified.layout.yaxis.title.text);
 
-              // Adding the extracted units to globalData
-              globalData.unit = {
+              // Adding the extracted units to _jsonified
+              _jsonified.unit = {
                 x: xUnit,
                 y: yUnit,
               };
@@ -1140,39 +1143,45 @@
               // Iterate through the dataset and check if there is a simulation to run for each dataset
               // On 6/4/25, a call to the function executeImplicitDataSeriesOperations was added here to evaluate equations.
               // In the longterm, the simulation logic should be moved into executeImplicitDataSeriesOperations
-              globalData = executeImplicitDataSeriesOperations(globalData); //globalData is a figDict.
-              for (const dataSet of globalData.data) {
-                const index = globalData.data.indexOf(dataSet);
+              _jsonified = executeImplicitDataSeriesOperations(_jsonified); //_jsonified is a figDict.
+              console.log("Index.html prepareForPlotting, Before first dataset simulation. _jsonified.data", copyJson(_jsonified.data));
+              //This loop iterates across data_series dictionary objects objects to see if any require simulation.
+              //TODO: this loop's commands should be moved into executeImplicitDataSeriesOperations. There are two loops like this in index.html
+              for (const dataSet of _jsonified.data) { 
+                const index = _jsonified.data.indexOf(dataSet);
                 const hasSimulate = checkSimulate(dataSet);
                 if (hasSimulate) {
                   const simulatedData = await getAndRunSimulateScript(
                     dataSet,
-                    globalData,
+                    _jsonified,
                     index
                   );
+                  console.log("in index.html, after first simulation, dataSet", dataSet);
+                  console.log("in index.html, after first simulation, simulatedData", simulatedData);                  
                   // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
                   const convertSimulatedDataUnits =
                     await maybeConvertSimulatedDataUnits(
-                      jsonified,
+                      _jsonified,
                       simulatedData,
                       index
                     );
-
-                  const simulatedJsonified = await mergeSimulationData(
+                  console.log("Index.html prepareForPlotting, after first dataset simulation. simulatedData", copyJson(simulatedData));
+                  const simulatedJsonified = await mergeSimulationData( //This function call populates the correct data series in jsonified.
                     convertSimulatedDataUnits,
-                    jsonified,
+                    _jsonified,
                     index
                   );
-
-                  jsonified = simulatedJsonified;
                   // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
                   // There is  no STEP 5 at this line, because the first dataset provided by the user is used to define the units of GlobalData.
                 }
               }
-              //Finally, return the objects that have been prepared for plotting an downloading.
+              //After going through all datasets for implicit dataseries updates, we set globalData equal to the updated _jsonified, since this is the first record.
+              globalData = _jsonified
+
+              //Finally, return the objects that have been prepared for plotting and downloading.
               resolve({
                 data: globalData,
-                downloadData: jsonified,
+                downloadData: _jsonified,
                 fileName: recentFileName,
               });
             } else {
@@ -1208,6 +1217,8 @@
                 // On 6/4/25, a call to the function executeImplicitDataSeriesOperations was added here to evaluate equations.
                 // In the longterm, the simulation logic should be moved into executeImplicitDataSeriesOperations
                 _jsonified = executeImplicitDataSeriesOperations(_jsonified); //globalData is a figDict.
+                //This loop iterates across data_series dictionary objects objects to see if any require simulation.
+                //TODO: this loop's commands should be moved into executeImplicitDataSeriesOperations. There are two loops like this in index.html
                 for (const dataSet of _jsonified.data) {
                   const index = _jsonified.data.indexOf(dataSet);
                   const hasSimulate = checkSimulate(dataSet);
@@ -1217,6 +1228,8 @@
                       jsonified,
                       index
                     );
+                    console.log("in index.html, after second simulation, dataSet", dataSet);
+                    console.log("in index.html, after second simulation, simulatedData", simulatedData);
                     //This changes the simulated data to have units matching the json object it came from (that is, the layout field)
                     convertSimulatedDataUnits =
                       await maybeConvertSimulatedDataUnits(
@@ -1244,10 +1257,14 @@
                 }
 
                 // merge the new data with the globalData so everything can be plotted together.
+                console.log("index.html prepareForPlotting, about to merge after second series simulation. globalData.data", globalData.data);
+                console.log("index.html prepareForPlotting, about to merge after second series simulation. convertedJsonified.data", convertedJsonified.data);
                 globalData.data = [
                   ...globalData.data,
                   ...convertedJsonified.data,
                 ];
+                console.log("index.html prepareForPlotting, finished merge after second series simulation. globalData.data", globalData.data);
+                console.log("index.html prepareForPlotting, finished merge after second series simulation. convertedJsonified.data", convertedJsonified.data);
                 //Finally, return the objects that have been prepared for plotting an downloading.
                 resolve({
                   data: globalData,
