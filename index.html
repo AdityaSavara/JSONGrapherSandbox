@@ -321,7 +321,6 @@
             return jsonifyTSV(dataLoaded);
           }
           default: {
-            console.log("Index.html loadAndPlotData jsonifyData", dataLoaded);
             return JSON.parse(dataLoaded);
           }
         }
@@ -788,12 +787,10 @@
           let urlString = prefix + encodeURIComponent(jsonURL); 
           // wanted to Compress using Bzip2, but didn't succeed in importing a JS version without problems.
           //urlString = compressjs.Bzip2.compressFile(new TextEncoder().encode(urlString));
-          console.log("in index.html createCopyUrlLink", urlString);
           return urlString;
       }
 
       function createCopyURLButton(jsonURL) {
-        console.log("index.html createcopyURLButton", jsonURL);
         // Generate the URL
           const urlString = createCopyUrlLink(jsonURL);
           // Create the button
@@ -853,7 +850,6 @@
         const downloadJSONButton = createDownlodJSONButton(jsonified, filename);
         // Create Download URL button (technically a copy button)
         // Only show this button if someone has loaded from url.
-        console.log("index.html appendDownloadButtons", urlReceived);
         let downloadURLButton = null // initializing.
         if (urlReceived !== ""){ 
           downloadURLButton = createCopyURLButton(urlReceived);
