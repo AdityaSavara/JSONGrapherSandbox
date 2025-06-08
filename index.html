@@ -1176,13 +1176,12 @@
                   result = await simulateByIndexAndPopulateFigDict(_jsonified, index);
                   simulatedJsonified = result.simulatedJsonified
                   _jsonified = result._jsonified;
-                  // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
-                  // There is  no STEP 5 at this line, because the first dataset provided by the user is used to define the units of GlobalData.
+
                 }
               }
+              // There is  no STEP 5 for first record, because first record provided by the user is used to define the units of GlobalData.
               //After going through all datasets for implicit dataseries updates, we set globalData equal to the updated _jsonified, since this is the first record.
               globalData = _jsonified
-
               //Finally, return the objects that have been prepared for plotting and downloading.
               resolve({
                 data: globalData,
@@ -1213,9 +1212,8 @@
               {
                 // create a deep copy of jsonified to avoid mutating the original jsonified
                 let _jsonified = JSON.parse(JSON.stringify(jsonified));
-                let convertedJsonified = _jsonified;
-                let simulatedJsonified;
-                let convertSimulatedDataUnits;
+                let simulatedJsonified; //just initializing
+                let convertedJsonified; //just initializing
 
                 // STEP 4: Check if the object has a dataSet that has a simulate key in it, and runs the simulate function based on the value provided in the key model
                 // Iterate through the dataset and check if there is a simulation to run for each dataset
@@ -1231,34 +1229,25 @@
                     //Below, the "result" has named fields inside, which we will extract.
                     result = await simulateByIndexAndPopulateFigDict(_jsonified, index);
                     simulatedJsonified = result.simulatedJsonified
-                    _jsonified = result._jsonified;
-                    // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
-                    const convertedJsonified = await convertUnits(
-                      simulatedJsonified,
-                      globalData
-                    );
-                  } else {
-                    // STEP 5: Check if the units in the dataset are the same as the units in the previous object and convert them
-                    convertedJsonified = await convertUnits(
-                    _jsonified,
-                    globalData
-                    );
+                    _jsonified = result._jsonified;                
+                    } 
                   }
-                }
+                // STEP 5: Check if the units in the _jsonified are the same as the units in the overall record and convert them if needed.
+                _jsonified = await convertUnits( _jsonified, globalData);
 
                 // merge the new data with the globalData so everything can be plotted together.
                 console.log("index.html prepareForPlotting, about to merge after second series simulation. globalData.data", globalData.data);
-                console.log("index.html prepareForPlotting, about to merge after second series simulation. convertedJsonified.data", convertedJsonified.data);
+                console.log("index.html prepareForPlotting, about to merge after second series simulation. _jsonified.data", _jsonified.data);
                 globalData.data = [
                   ...globalData.data,
-                  ...convertedJsonified.data,
+                  ..._jsonified.data,
                 ];
                 console.log("index.html prepareForPlotting, finished merge after second series simulation. globalData.data", globalData.data);
-                console.log("index.html prepareForPlotting, finished merge after second series simulation. convertedJsonified.data", convertedJsonified.data);
+                console.log("index.html prepareForPlotting, finished merge after second series simulation. _jsonified.data", _jsonified.data);
                 //Finally, return the objects that have been prepared for plotting an downloading.
                 resolve({
                   data: globalData,
-                  downloadData: convertedJsonified,
+                  downloadData: _jsonified,
                   fileName: recentFileName,
                 });
               } else {
