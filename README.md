@@ -1,4 +1,5 @@
 # [JSONGrapher]()
+Imagine a world where a person can simply drag a datafile into a graphing utility and a plot will be made, including scientific units, and more plots can be dragged in from data from other sources (and other units) to compare all of the data together, in an interactive graph.
 
 Online address for using the JSONGrapher: https://www.jsongrapher.com <br>
 Python version of JSONgrapher: https://github.com/AdityaSavara/jsongrapher-py <br>
