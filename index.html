@@ -73,20 +73,31 @@
       </div>
     </header>
     <div class="page">
-      <h1>JSONGrapher</h1>
-<p>
-    JSONGrapher plots data from one or more files directly in your browser, creating interactive graphs to compare data! 
-</p><p>Try plotting one of the 
-    <a href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/DemonstrationFiles.zip" target="_blank">example files</a> 
-    (first unzip, then plot with JSONGrapher).   Just drag-and-drop an example file into the box below, or use the browse-to-upload option. Then, add more files to compare more data on the same graph!</p>
+    <h1>JSONGrapher</h1>
+    <p>
+    JSONGrapher plots data from one or more files directly in your browser, creating interactive graphs to compare data!        
+    </p>
+    <div id="toggleSection">
+    <p>Try plotting one of the 
+        <a href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/DemonstrationFiles.zip" target="_blank">example files</a> 
+        (first unzip, then plot with JSONGrapher). Just drag-and-drop an example file into the box below, or use the browse-to-upload option. Then, add more files to compare more data on the same graph!
+    </p>
+        To make your own files, use the <a href="https://github.com/AdityaSavara/jsongrapher-py" target="_blank">python JSONGrapher</a>,
+        or the <a href="https://adityasavara.github.io/JSONGrapher/other_html/BrowserRecordCreator/BrowserRecordCreator.html" target="_blank"> browser record creator</a>,
+        or see the <a href="https://adityasavara.github.io/JSONGrapher/Manual.pdf" target="_blank">manual</a>.<br>
 
-<p>
-    To make your own files, use the <a href="https://github.com/AdityaSavara/jsongrapher-py" target="_blank">python JSONGrapher</a>,
-    or the <a href="https://adityasavara.github.io/JSONGrapher/other_html/BrowserRecordCreator/BrowserRecordCreator.html" target="_blank"> browser record creator</a>,
-    or see the <a href="https://adityasavara.github.io/JSONGrapher/Manual.pdf" target="_blank">manual</a>. <br />
     <a href="https://www.dropbox.com/s/1s8ib1rsv3xmj1c/3_edited.mp4?dl=0" target="_blank">How to Plot and Features Video</a> | 
+    <a href="https://adityasavara.github.io/JSONGrapher/Manual.pdf" target="_blank">Manual</a> |
     <a href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/DemonstrationFiles.zip" target="_blank">Example Files</a> | 
-    <a href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/ExampleDataRecords.zip" target="_blank">More Examples</a>
+    <a href="https://github.com/AdityaSavara/JSONGrapherExamples/" target="_blank">More Examples</a>
+    </div>
+
+    
+    <div id="toReveal" style="display: none;""><a href="https://www.dropbox.com/s/1s8ib1rsv3xmj1c/3_edited.mp4?dl=0" target="_blank">How to Plot and Features Video</a> | 
+    <a href="https://adityasavara.github.io/JSONGrapher/Manual.pdf" target="_blank">Manual</a> |
+    <a href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/DemonstrationFiles.zip" target="_blank">Example Files</a> (Files must be unzipped to plot) | 
+    <a href="https://github.com/AdityaSavara/JSONGrapherExamples/" target="_blank">More Examples</a> |
+    </div>
 </p>
 
       <div class="file-actions">
@@ -156,6 +167,10 @@
         document.getElementById("file-selector").value = "";
         document.getElementById("load-from-url").value = "";
         document.getElementById("download").style.display = "none";
+        const toggleSection = document.getElementById("toggleSection"); //Now will reveal again.
+        const toRevealSection = document.getElementById("toReveal");   // Now will hide.
+        toggleSection.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
+        toRevealSection.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
         Plotly.purge("plotlyDiv");
       }
 
@@ -778,8 +793,10 @@
       // A function that will create a bz2 and encoded URL for the final graph.
       // This approach was abandoned because the URL strings were too long for both some browsers and some webservers limits.
       function jsonToUrl(json) {
-          const url = window.location.href.split('?')[0]; // gets url from browser and removes query parameters
-          const prefix = `${url}?fromUrl=`;
+          //For now, am hardcoding url, because otherwise the repository github pages url gets prefixed. The repository github pages url works, but does not look as nice.
+          const prefix = `http://www.jsongrapher.com?fromUrl=`;
+          //const url = window.location.href.split('?')[0]; // gets url from browser and removes query parameters
+          //const prefix = `${url}?fromUrl=`;
           // Convert JSON to a string
           let jsonString = JSON.stringify(json);         
           // Concatenate with prefix and apply URL encoding, which is like the python urllib.parse.quote(json_string) and urllib.parse.unquote(encoded_string)
@@ -791,8 +808,10 @@
 
       // A function that will create a URL string that allows graphing from a remote json.
       function createCopyUrlLink(jsonURL) {
-          const url = window.location.href.split('?')[0]; // gets url from browser and removes query parameters
-          const prefix = `${url}?fromUrl=`;
+          //For now, am hardcoding url, because otherwise the repository github pages url gets prefixed. The repository github pages url works, but does not look as nice.
+          const prefix = `http://www.jsongrapher.com?fromUrl=`;
+          //const url = window.location.href.split('?')[0]; // gets url from browser and removes query parameters
+          //const prefix = `${url}?fromUrl=`;
           // Concatenate with prefix and apply URL encoding, which is like the python urllib.parse.quote(json_string) and urllib.parse.unquote(encoded_string)
           let urlString = prefix + encodeURIComponent(jsonURL); 
           // wanted to Compress using Bzip2, but didn't succeed in importing a JS version without problems.
@@ -1001,6 +1020,8 @@
       // STEP 0: Prepare the 'universal' schemas occurs inside initializeJSONGrapher
       initializeJSONGrapher()
         .then((resp) => {
+          const toggleSection = document.getElementById("toggleSection"); //get toggle section so actions can hide it.
+          const toRevealSection = document.getElementById("toReveal"); //get toReveal section so actions can reveal
           // Assign variables to the two universal schemas.
           schema = resp[0];
           plotlyTemplate = resp[1];
@@ -1012,6 +1033,8 @@
             const fileSelector = document.getElementById("file-selector");
             if (fileSelector) {
               fileSelector.addEventListener("change", (event) => {
+                toggleSection.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
+                toRevealSection.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
                 loadAndPlotData(event, "change");
               });
             }
@@ -1026,6 +1049,8 @@
 
               dropArea.addEventListener("drop", (event) => {
                 event.preventDefault();
+                toggleSection.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
+                toRevealSection.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
                 loadAndPlotData(event, "drop");
               });
             }
@@ -1039,6 +1064,8 @@
               if (isValidUrl(urlInput)){ 
                 const url = parseUrl(urlInput);
                 urlReceived = url //This line is populating a global variable. 
+                toggleSection.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
+                toRevealSection.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
                 loadAndPlotData(url, "url");
               } else {
                 console.error("No URL entered.");
@@ -1088,9 +1115,12 @@
         if (eventType === "url"){
           jsonified = await loadJsonFromUrl(event);//the event will have the url in it.
           filetype = "json";
+          const toggleSection = document.getElementById("toggleSection");
+          const toRevealSection = document.getElementById("toReveal"); //get toReveal section so actions can reveal
+          toggleSection.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
+          toRevealSection.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
         }
-
-       
+      
         // STEP 2 (VARIATION A): If the file is a .csv or .tsv file it is converted to a .json file
         if (eventType === "change" || eventType === "drop") {
           try {
@@ -1259,12 +1289,12 @@
   </body>
   <footer>
     <center>
-      <a href="license.html">License</a>
+      <a href="./other_html/license.html">License</a>
       <a href="Manual.pdf" target="_blank">Manual</a>
       <a href="https://github.com/AdityaSavara/JSONGrapher" target="_blank"
         >Source</a
       >
-      <a href="credits.html">Credits</a>
+      <a href="/other_html/credits.html">Credits</a>
     </center>
   </footer>
 </html>
