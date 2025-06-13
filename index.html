@@ -114,10 +114,11 @@
         Drop a file here:
         <pre></pre>
       </div>
+      <div id="messagesToUserDiv"></div>
+      <div id="errorDiv"></div>
       <div id="plotlyDiv">
         <!-- Plotly chart will be drawn inside this DIV -->
       </div>
-      <div id="errorDiv"></div>
       <div id="downloadLink"></div>
       <div id="copyUrlLink"></div>
       <div id="conceptDiv">
@@ -154,6 +155,7 @@
       // Initializing the AJV validator
       const ajv = new Ajv();
       const errorDiv = document.getElementById("errorDiv");
+      const messagesToUserDiv = document.getElementById("messagesToUserDiv");
       // Initiating the UUC converter
       const convert = new Convert();
 
@@ -163,6 +165,7 @@
         urlParamsString = null; //empty this global variable.
         urlReceived = null; //empty this global variable.
         document.getElementById("errorDiv").innerHTML = "";
+        document.getElementById("messagesToUserDiv").innerHTML = "";
         document.getElementById("downloadButtonsContainer").innerHTML = "";
         document.getElementById("file-selector").value = "";
         document.getElementById("load-from-url").value = "";
@@ -1169,7 +1172,12 @@
           appendDownloadButtons(res.downloadData, res.fileName);
           // STEP 7: The create a plotly JSON, clean it, and render it on the browser
           plot_with_plotly(res.data);
-        }
+          //Replace existing "Data Plotted" message if it is already there, to avoid duplicating it.
+          if (!messagesToUserDiv.innerText){ //Currently, we assume the below message is present or not present. If we later put additional messagesToUser, we may need to add more logic.
+            const dataPlottedMessage = "\u2003\u2003\u2003\u2003\u2003\u2003 Data plotted! Add more data or click 'Clear Data' to start a new graph! \u2003\u2003\u2003\u2003\u2003\u2003"
+            messagesToUserDiv.innerText += dataPlottedMessage
+          }
+          }
         errorDiv.innerText = errorDiv.innerText.replace(loadingMessage,"");
       }
 
@@ -1278,7 +1286,8 @@
                 });
               } else {
                 //clearData(); //Should not clear data when chart or axis titles do not match, just should not plot the new data.
-                errorDiv.innerText += `Added data not plotted. The records were not compatible for merging. Click the button to clear data if you want to start a new graph. \n`;
+                errorDiv.innerText += `Added data not plotted. The records were not compatible for merging. You may continue trying to add data sets, or may click "Clear Data" to start a new graph. These error messages will be automatically cleared after 10 seconds. \n`;
+                setTimeout(() => { errorDiv.innerText = '';  }, 10000); // Clears the text after 10 seconds
               }
             }
           } catch (err) {
