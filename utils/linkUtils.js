@@ -128,6 +128,18 @@ export function addOpeningURLonButtonClick (button, link) {
   return button;
 }
 
+//Helper function that works with addOpeningURLonButtonClick
+//This takes a url that could be for file download
+//along with a button ID, to get the button object
+// and then call addOpeningURLonButtonClick
+export function addLinkToButton(buttonId, url) {
+  const button = document.getElementById(buttonId);
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  addOpeningURLonButtonClick(button, link);
+}
+
 
 window.loadJsonFromUrl = loadJsonFromUrl; //line needed for index.html to see the function after importing.
 window.isValidUrl = isValidUrl; //line needed for index.html to see the function after importing.
@@ -136,4 +148,5 @@ window.createDownloadCSVLink = createDownloadCSVLink; //line needed for index.ht
 window.jsonToUrl = jsonToUrl; //line needed for index.html to see the function after importing.
 window.createCopyUrlLink = createCopyUrlLink; //line needed for index.html to see the function after importing.
 window.addOpeningURLonButtonClick = addOpeningURLonButtonClick; //line needed for index.html to see the function after importing.
+window.addLinkToButton = addLinkToButton; //line needed for index.html to see the function after importing.
 window.parseUrl = parseUrl; //line needed for index.html to see the function after importing.
