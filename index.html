@@ -11,12 +11,12 @@
     </script>
     <meta charset="UTF-8" />
     <title>JSONGrapher</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>
+    <link rel="stylesheet" href="./other_html/styles.css" />
     <script src="https://cdn.plot.ly/plotly-2.14.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>    
     <!--  We use AJV for json validation. We use the 6.12.6 version because the later version had a compilation error. To reduce the external dependency, we have the source code on our github in he AJV folder, it is an under an MIT LICENSE, as noted in the LICENSE file of JSON Grapher.
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/6.12.6/ajv.bundle.min.js" integrity="sha512-Xl0g/DHU98OkfXTsDfAAuTswzkniYQWPwLyGXzcpgDxCeH52eePfaHj/ictLAv2GvlPX2qZ6YV+3oDsw17L9qw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
     <script src="./utils/AJV//6.12.6/ajv.bundle.min.js"></script>
-    <link rel="stylesheet" href="./other_html/styles.css" />
     <script src="./utils/UUC/app/convert.js"></script>
     <script src="./utils/UUC/app/convert_parse.js"></script>
     <script src="./utils/UUC/app/convert_macro.js"></script>
@@ -25,11 +25,11 @@
     <script src="./styles/layout_styles_library.js"></script>
     <script src="./styles/trace_styles_collection_library.js"></script>
     <script type="module"> 
-      import { copyJson } from './utils/styleUtils.js'; 
-      import { parsePlotStyle } from './utils/styleUtils.js'; 
-      import { applyPlotStyleToPlotlyDict } from './utils/styleUtils.js'; 
+      import { copyJson, parsePlotStyle, applyPlotStyleToPlotlyDict } from './utils/styleUtils.js';
       import { cleanJsonFigDict } from './utils/figDictUtils.js'; 
       import {executeImplicitDataSeriesOperations} from './utils/json_equationer/implicitUtils.js'
+      import { jsonifyData, findFileType, jsonifyTSV, jsonifyCSV, getFileName } from './utils/fileUtils.js'; 
+      import { loadJsonFromUrl, isValidUrl, createDownloadJSONLink, jsonToUrl, createCopyUrlLink } from './utils/linkUtils.js'; 
     </script>  
     <style>
       .file-actions {
@@ -183,189 +183,6 @@
         Plotly.purge("plotlyDiv");
       }
 
-      // A function that checks if the uploaded file extension
-      function findFileType(fileName) {
-        let arrayName = fileName.split(".");
-        if (arrayName.includes("csv")) {
-          return "csv";
-        }
-        if (arrayName.includes("tsv")) {
-          return "tsv";
-        }
-        return "json";
-      }
-
-      //function to retrieve JSON Record from url
-      async function loadJsonFromUrl(url) { 
-        try {
-          const response = await fetch(url);
-          if (!response.ok) throw new Error("Network response was not OK");
-          const jsonData = await response.json();
-          return jsonData;
-        } catch (error) {
-          console.error("Error fetching JSON:", error);
-          return null;
-        }
-      }
-
-      // A function the jsonifies a tsv file
-      function jsonifyTSV(fileContent) {
-        //separate rows
-        let arr = fileContent.split("\n");
-
-        //if last row is empty remove it
-        if (arr[arr.length - 1].length < 2) {
-          arr = arr.slice(0, arr.length - 1);
-        }
-
-        //count number of columns
-        let number_of_columns = arr[0].split("\t").length;
-
-        //extract the config information
-        let comments = arr[0].split("\t")[0].split(":")[1].trim();
-        let data_type = arr[1].split("\t")[0].split(":")[1].trim();
-        let chart_label = arr[2].split("\t")[0].split(":")[1].trim();
-        let x_label = arr[3].split("\t")[0].split(":")[1].trim();
-        let y_label = arr[4].split("\t")[0].split(":")[1].trim();
-        custom = arr[5]; //This field is for custom json objects and is currently ignored.
-
-        //extract the series names
-        let series_names_array = arr[5]
-          .split(":")[1]
-          .split('"')[0]
-          .split("\t")
-          .map((n) => n.trim());
-
-        //ignore arr[7] which is custom_variables:
-
-        //extract the data
-        let data = arr
-          .slice(8)
-          .map((r) => r.split("\t").map((str) => Number(str)));
-
-        let resultJSON = JSON.parse(JSON.stringify(plotlyTemplate, null, 2)); // clone of the template. The ", null, 2" is optional to make the json more human readable.
-
-        resultJSON.comments = comments;
-        resultJSON.datatype = data_type;
-        resultJSON.layout.title = { text: chart_label };
-        resultJSON.layout.xaxis.title = { text: x_label };
-        resultJSON.layout.yaxis.title = { text: y_label };
-
-        let newData = [];
-        series_names_array.forEach((series_name, index) => {
-          let dataClone = JSON.parse(
-            JSON.stringify(plotlyTemplate.data[0], null, 2)
-          ); // the ", null, 2" is optional to make the json more human readable.
-          dataClone.name = series_name;
-          dataClone.x = data.map((r) => r[0]);
-          dataClone.y = data.map((r) => r[index + 1]);
-          dataClone.uid = dataClone.uid + String(index);
-          newData.push(dataClone);
-        });
-
-        resultJSON.data = newData;
-
-        return resultJSON;
-      }
-
-      // A function the jsonifies a csv file
-      function jsonifyCSV(fileContent) {
-        //separate rows
-        let arr = fileContent.split("\n");
-        //if last row is empty remove it
-        if (arr[arr.length - 1].length < 2) {
-          arr = arr.slice(0, arr.length - 1);
-        }
-
-        //count number of columns
-        let number_of_columns = arr[5].split(",").length;
-
-        //extract the config information
-        let comments = arr[0].split(",")[0].split(":")[1].trim();
-        let data_type = arr[1].split(",")[0].split(":")[1].trim();
-        let chart_label = arr[2].split(",")[0].split(":")[1].trim();
-        let x_label = arr[3].split(",")[0].split(":")[1].trim();
-        let y_label = arr[4].split(",")[0].split(":")[1].trim();
-
-        //extract the series names
-        let series_names_array = arr[5]
-          .split(":")[1]
-          .split('"')[0]
-          .split(",")
-          .map((n) => n.trim());
-
-        //extract the data
-        let data = arr
-          .slice(7)
-          .map((r) => r.split(",").map((str) => Number(str)));
-
-        let resultJSON = JSON.parse(JSON.stringify(plotlyTemplate, null, 2)); // clone of the template. The "null, 2" are optional arguments that increase human readability.
-
-        resultJSON.comments = comments;
-        resultJSON.datatype = data_type;
-        resultJSON.layout.title = { text: chart_label };
-        resultJSON.layout.xaxis.title = { text: x_label };
-        resultJSON.layout.yaxis.title = { text: y_label };
-
-        //Remove any series where the series name is blank.
-        function isNotBlank(value) {
-          return value != "";
-        }
-        series_names_array = series_names_array.filter(isNotBlank);
-
-        //We make a data set for each series_name, this way the blank series_name that have been removed will not be included.
-        let newData = [];
-        series_names_array.forEach((series_name, index) => {
-          let dataClone = JSON.parse(
-            JSON.stringify(plotlyTemplate.data[0]),
-            null,
-            2
-          ); // the ", null, 2" are optional arguments to increase human readability.
-          dataClone.name = series_name;
-          dataClone.x = data.map((r) => r[0]);
-          dataClone.y = data.map((r) => r[index + 1]);
-          dataClone.uid = dataClone.uid + String(index);
-          newData.push(dataClone);
-        });
-
-        resultJSON.data = newData;
-        return resultJSON;
-      }
-
-      // Gets the name of the uploaded file
-      function getFileName(fileName) {
-        let arrayName = fileName.split(".");
-        return arrayName[0];
-      }
-
-      // A function checks the extension of the file and calls the appropriate function to jsonfiy the file
-      function jsonifyData(filetype, dataLoaded) {
-        switch (filetype) {
-          case "csv": {
-            return jsonifyCSV(dataLoaded);
-          }
-          case "tsv": {
-            return jsonifyTSV(dataLoaded);
-          }
-          default: {
-            return JSON.parse(dataLoaded);
-          }
-        }
-      }
-
-      function isValidUrl(urlString) {
-        var urlPattern = new RegExp(
-          "^(https?:\\/\\/)?" + // validate protocol
-            "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // validate domain name
-            "((\\d{1,3}\\.){3}\\d{1,3}))" + // validate OR ip (v4) address
-            "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // validate port and path
-            "(\\?[;&a-z\\d%_.~+=-]*)?" + // validate query string
-            "(\\#[-a-z\\d_]*)?$",
-          "i"
-        ); // validate fragment locator
-        return !!urlPattern.test(urlString);
-      }
-      
       // function to extract from the datatype the location of the schema
       function getSchemaLocation(jsonified, template = false) {
         if (!jsonified.datatype) {
@@ -781,54 +598,6 @@
         return downloadLink;
       }
 
-      // A function that will create a download link for the json file
-      function createDownloadJSONLink(json, filename) {
-        if (filename===null){filename="JSONGrapherRecord.json";};
-        let jsonFile;
-        let downloadLink;
-        // JSON file
-        jsonFile = new Blob([JSON.stringify(json, null, 4)], {
-          type: "application/json",
-        });
-        // Download link
-        downloadLink = document.createElement("a");
-        // File name
-        downloadLink.download = filename;
-        // Create a link to the file
-        downloadLink.href = window.URL.createObjectURL(jsonFile);
-        // Hide download link
-        downloadLink.style.display = "none";
-        return downloadLink;
-      }
-
-      // A function that will create a bz2 and encoded URL for the final graph.
-      // This approach was abandoned because the URL strings were too long for both some browsers and some webservers limits.
-      function jsonToUrl(json) {
-          //For now, am hardcoding url, because otherwise the repository github pages url gets prefixed. The repository github pages url works, but does not look as nice.
-          const prefix = `http://www.jsongrapher.com?fromUrl=`;
-          //const url = window.location.href.split('?')[0]; // gets url from browser and removes query parameters
-          //const prefix = `${url}?fromUrl=`;
-          // Convert JSON to a string
-          let jsonString = JSON.stringify(json);         
-          // Concatenate with prefix and apply URL encoding, which is like the python urllib.parse.quote(json_string) and urllib.parse.unquote(encoded_string)
-          let urlString = prefix + encodeURIComponent(jsonString); 
-          // wanted to Compress using Bzip2, but didn't succeed in importing a JS version without problems.
-          //urlString = compressjs.Bzip2.compressFile(new TextEncoder().encode(urlString));
-          return urlString;
-      }
-
-      // A function that will create a URL string that allows graphing from a remote json.
-      function createCopyUrlLink(jsonURL) {
-          //For now, am hardcoding url, because otherwise the repository github pages url gets prefixed. The repository github pages url works, but does not look as nice.
-          const prefix = `http://www.jsongrapher.com?fromUrl=`;
-          //const url = window.location.href.split('?')[0]; // gets url from browser and removes query parameters
-          //const prefix = `${url}?fromUrl=`;
-          // Concatenate with prefix and apply URL encoding, which is like the python urllib.parse.quote(json_string) and urllib.parse.unquote(encoded_string)
-          let urlString = prefix + encodeURIComponent(jsonURL); 
-          // wanted to Compress using Bzip2, but didn't succeed in importing a JS version without problems.
-          //urlString = compressjs.Bzip2.compressFile(new TextEncoder().encode(urlString));
-          return urlString;
-      }
 
       function createCopyURLButton(jsonURL) {
           // Generate the URL
