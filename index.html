@@ -77,7 +77,7 @@
     <p>
     JSONGrapher plots data from one or more files directly in your browser, creating interactive graphs to compare data!        
     </p>
-    <div id="toggleSection">
+    <div id="toggleSection2">
     <p>Try plotting one of the 
         <a href="https://github.com/AdityaSavara/JSONGrapherExamples/raw/main/DemonstrationFiles.zip" target="_blank">example files</a> 
         (first unzip, then plot with JSONGrapher). Just drag-and-drop an example file into the box below, or use the browse-to-upload option. Then, add more files to compare more data on the same graph!
@@ -170,9 +170,9 @@
         document.getElementById("file-selector").value = "";
         document.getElementById("load-from-url").value = "";
         document.getElementById("download").style.display = "none";
-        const toggleSection = document.getElementById("toggleSection"); //Now will reveal again.
+        const toggleSection2 = document.getElementById("toggleSection2"); //Now will reveal again.
         const toRevealSection = document.getElementById("toReveal");   // Now will hide.
-        toggleSection.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
+        toggleSection2.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
         toRevealSection.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
         Plotly.purge("plotlyDiv");
       }
@@ -1025,7 +1025,7 @@
       // STEP 0: Prepare the 'universal' schemas occurs inside initializeJSONGrapher
       initializeJSONGrapher()
         .then((resp) => {
-          const toggleSection = document.getElementById("toggleSection"); //get toggle section so actions can hide it.
+          const toggleSection2 = document.getElementById("toggleSection2"); //get toggle section so actions can hide it.
           const toRevealSection = document.getElementById("toReveal"); //get toReveal section so actions can reveal
           // Assign variables to the two universal schemas.
           schema = resp[0];
@@ -1038,7 +1038,7 @@
             const fileSelector = document.getElementById("file-selector");
             if (fileSelector) {
               fileSelector.addEventListener("change", (event) => {
-                toggleSection.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
+                toggleSection2.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
                 toRevealSection.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
                 loadAndPlotData(event, "change");
               });
@@ -1054,7 +1054,7 @@
 
               dropArea.addEventListener("drop", (event) => {
                 event.preventDefault();
-                toggleSection.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
+                toggleSection2.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
                 toRevealSection.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
                 loadAndPlotData(event, "drop");
               });
@@ -1069,7 +1069,7 @@
               if (isValidUrl(urlInput)){ 
                 const url = parseUrl(urlInput);
                 urlReceived = url //This line is populating a global variable. 
-                toggleSection.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
+                toggleSection2.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
                 toRevealSection.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
                 loadAndPlotData(url, "url");
               } else {
@@ -1120,9 +1120,9 @@
         if (eventType === "url"){
           jsonified = await loadJsonFromUrl(event);//the event will have the url in it.
           filetype = "json";
-          const toggleSection = document.getElementById("toggleSection");
+          const toggleSection2 = document.getElementById("toggleSection2");
           const toRevealSection = document.getElementById("toReveal"); //get toReveal section so actions can reveal
-          toggleSection.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
+          toggleSection2.style.display = "none"; // "none" to hide and "block" to show. Those are built in keywords.
           toRevealSection.style.display = "block"; // "none" to hide and "block" to show. Those are built in keywords.
         }
       
