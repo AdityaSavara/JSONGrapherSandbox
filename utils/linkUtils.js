@@ -118,7 +118,7 @@ export function parseUrl(url) {
 //This is a helper function that takes in a button and a link
 // and makes it so that the link is opened when a person clicks a button
 // this can also be used to initiate downloads if the link is to a file.
-function addOpeningURLonButtonClick (button, link) {
+export function addOpeningURLonButtonClick (button, link) {
   // Adding an event listener to the button for when clicking occurs
   button.addEventListener("click", () => {
     document.body.appendChild(link);
