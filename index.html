@@ -90,26 +90,39 @@
     <script>
      //Need to wait until DOM is loaded, otherwise the addLinkToButton function won't work.
      //We actually shouldn't need the if statement with 'loading' check below, but am doing it just in case.
-      function myInitCode() {
+      async function myInitCode() {
         //Get urls of the 3 examples (and parse them for true direct links)
         const example1Url = parseUrl("https://github.com/AdityaSavara/JSONGrapherExamples/blob/main/ExampleDataRecords/1-CO2__Adsorption_Isotherms/amino_silane_silica_experimental_data.json");
         const example2Url = parseUrl("https://github.com/AdityaSavara/JSONGrapherExamples/blob/main/ExampleDataRecords/1-CO2__Adsorption_Isotherms/amino_silane_silica_modeled_data.json");
-        const example3Url = parseUrl("https://github.com/AdityaSavara/JSONGrapherExamples/blob/main/ExampleDataRecords/1-CO2__Adsorption_Isotherms/pei_carbon_exp_343.csv");
+        const example3Url = parseUrl("https://github.com/AdityaSavara/JSONGrapherExamples/blob/main/ExampleDataRecords/1-CO2__Adsorption_Isotherms/CO2Adsorption_NaX_and_CaX_two_series.json");
         //now need to get the json content from them, because we don't want the browser to open them.
-        
-
-        addLinkToButton("Example1", example1Url);
-        addLinkToButton("Example2", example2Url);
-        addLinkToButton("Example3", example3Url);
+        console.log("line 99", example1Url);
+        const example1json = await loadJsonFromUrl(example1Url);
+        const example2json = await loadJsonFromUrl(example2Url);
+        const example3json = await loadJsonFromUrl(example3Url);
+        console.log("line 103", example1json);
+        //then make "json download JSON links" which allow us to embed the jsons into this webpage on demand..
+        const example1DownloadJSONLink = createDownloadJSONLink(example1json, "Example1_JSONGrapher.json");
+        const example2DownloadJSONLink = createDownloadJSONLink(example2json, "Example2_JSONGrapher.json");
+        const example3DownloadJSONLink = createDownloadJSONLink(example3json, "Example3_JSONGrapher.json");
+        addLinkToButton("Example1", example1DownloadJSONLink);
+        addLinkToButton("Example2", example2DownloadJSONLink);
+        addLinkToButton("Example3", example3DownloadJSONLink);
       }
 
-      if (document.readyState !== 'loading') {
-        // DOM is already ready
-        myInitCode();
-      } else {
-        // Wait for it to be ready
-        document.addEventListener('DOMContentLoaded', () => { myInitCode();});
+      // Function to run myInitCode once DOM is ready. Must be functionalized so can use await inside.
+      async function initWhenReady() {
+        if (document.readyState !== 'loading') {
+          // DOM is already ready
+          await myInitCode();
+        } else { // Wait for it to be ready
+          document.addEventListener('DOMContentLoaded', async () => {
+            // DOMContentLoaded event fired
+            await myInitCode();
+          });
+        }
       }
+      initWhenReady();
     </script>
     <div id="toggleSection2">    
         To make your own files, use the <a href="https://github.com/AdityaSavara/jsongrapher-py" target="_blank">python JSONGrapher</a>,
