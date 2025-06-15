@@ -140,8 +140,21 @@ export function getFileName(fileName) {
 }
 
 
+// Helper function to read file as text using Promises, so we can use await.
+export async function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.fileName = file.name;
+    reader.addEventListener("load", () => resolve(reader.result), { once: true });
+    reader.addEventListener("error", () => reject(new Error("File reading error")));
+    reader.readAsText(file);
+  });
+}
+
+
 window.jsonifyData = jsonifyData; //line needed for index.html to see the function after importing.
 window.findFileType = findFileType; //line needed for index.html to see the function after importing.
 window.jsonifyTSV = jsonifyTSV; //line needed for index.html to see the function after importing.
 window.jsonifyCSV = jsonifyCSV; //line needed for index.html to see the function after importing.
 window.getFileName = getFileName; //line needed for index.html to see the function after importing.
+window.readFileAsText = readFileAsText; //line needed for index.html to see the function after importing.

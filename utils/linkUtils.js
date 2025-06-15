@@ -26,6 +26,26 @@ export function isValidUrl(urlString) {
     return !!urlPattern.test(urlString);
 }
 
+
+// A function that will create a download link for the csv file
+export function createDownloadCSVLink(csv, filename) {
+  if (filename===null){filename="JSONGrapherRecord.csv";};
+  let csvFile;
+  let downloadLink;
+  // CSV file
+  csvFile = new Blob([csv], { type: "text/csv" });
+  // Download link
+  downloadLink = document.createElement("a");
+  // File name
+  downloadLink.download = filename;
+  // Create a link to the file
+  downloadLink.href = window.URL.createObjectURL(csvFile);
+  // Hide download link
+  downloadLink.style.display = "none";
+  return downloadLink;
+}
+
+
 // A function that will create a download link for the JSON file
 export function createDownloadJSONLink(json, filename) {
     if (filename === null) {
@@ -77,9 +97,26 @@ export function createCopyUrlLink(jsonURL) {
     return urlString;
 }
 
+// Changes the Github link to a CDN link to avoid CORB issues
+// TODO: currently we only support javascript from github. In the future, cross-domain / cross-origin simulate functions will be supported by SRI hash. https://www.w3schools.com/Tags/att_script_crossorigin.asp https://www.w3schools.com/Tags/att_script_integrity.asp with the SRI hash provided within the simulate object by a field in the JSON record named "SRI" or 'integrity"
+export function parseUrl(url) {
+  const urlArr = url.split("/");
+  if (urlArr[2] === "github.com") {
+    return url
+      .replace("github.com", "raw.githubusercontent.com")
+      .replace("/blob/", "/")
+      .replace("/tree/", "/")
+      .replace("www.", "");
+  } else {
+    return url;
+  }
+}
+
 
 window.loadJsonFromUrl = loadJsonFromUrl; //line needed for index.html to see the function after importing.
 window.isValidUrl = isValidUrl; //line needed for index.html to see the function after importing.
 window.createDownloadJSONLink = createDownloadJSONLink; //line needed for index.html to see the function after importing.
+window.createDownloadCSVLink = createDownloadCSVLink; //line needed for index.html to see the function after importing.
 window.jsonToUrl = jsonToUrl; //line needed for index.html to see the function after importing.
 window.createCopyUrlLink = createCopyUrlLink; //line needed for index.html to see the function after importing.
+window.parseUrl = parseUrl; //line needed for index.html to see the function after importing.
