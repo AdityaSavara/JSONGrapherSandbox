@@ -36,6 +36,7 @@ export function createDownloadCSVLink(csv, filename) {
   csvFile = new Blob([csv], { type: "text/csv" });
   // Download link
   downloadLink = document.createElement("a");
+  downloadLink.id = "DownloadCSVLink";
   // File name
   downloadLink.download = filename;
   // Create a link to the file
@@ -47,6 +48,7 @@ export function createDownloadCSVLink(csv, filename) {
 
 
 // A function that will create a download link for the JSON file
+// This takes in a json object (a "javascript object", not a string)
 export function createDownloadJSONLink(json, filename) {
     if (filename === null) {
         filename = "JSONGrapherRecord.json";
@@ -59,6 +61,7 @@ export function createDownloadJSONLink(json, filename) {
     });
     // Download link
     downloadLink = document.createElement("a");
+    downloadLink.id = "DownloadJSONLink";
     // File name
     downloadLink.download = filename;
     // Create a link to the file

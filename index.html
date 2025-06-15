@@ -80,13 +80,24 @@
     <div id="toggleSection1">
       <p>
         Try plotting one of the example files. Click to download 
-        <a href="https://github.com/AdityaSavara/JSONGrapherExamples/blob/main/ExampleDataRecords/1-CO2__Adsorption_Isotherms/amino_silane_silica_experimental_data.json" download target="_blank"><button>Example 1</button></a>
-        <a href="https://github.com/AdityaSavara/JSONGrapherExamples/blob/main/ExampleDataRecords/1-CO2__Adsorption_Isotherms/amino_silane_silica_modeled_data.json" download target="_blank"><button>Example 2</button></a>
-        <a href="https://github.com/AdityaSavara/JSONGrapherExamples/blob/main/ExampleDataRecords/1-CO2__Adsorption_Isotherms/pei_carbon_exp_343.csv" download target="_blank"><button>Example 3</button></a>.
+        <button id="Example1" name="Example1">Example 1</button>
+        <button id="Example2" name="Example2">Example 2</button>
+        <button id="Example3" name="Example3">Example 3</button>.
         Just drag-and-drop an example file into the box below, or use the browse-to-upload option. 
         Then, add more files to compare more data on the same graph!
       </p>
     </div>
+    <script>
+      document.getElementById("Example1").onclick = function () {
+        window.open("https://github.com/AdityaSavara/JSONGrapherExamples/blob/main/ExampleDataRecords/1-CO2__Adsorption_Isotherms/amino_silane_silica_experimental_data.json", "_blank");
+      };
+      document.getElementById("Example2").onclick = function () {
+        window.open("https://github.com/AdityaSavara/JSONGrapherExamples/blob/main/ExampleDataRecords/1-CO2__Adsorption_Isotherms/amino_silane_silica_modeled_data.json", "_blank");
+      };
+      document.getElementById("Example3").onclick = function () {
+        window.open("https://github.com/AdityaSavara/JSONGrapherExamples/blob/main/ExampleDataRecords/1-CO2__Adsorption_Isotherms/pei_carbon_exp_343.csv", "_blank");
+      };
+    </script>
     <div id="toggleSection2">    
         To make your own files, use the <a href="https://github.com/AdityaSavara/jsongrapher-py" target="_blank">python JSONGrapher</a>,
         or the <a href="https://adityasavara.github.io/JSONGrapher/other_html/BrowserRecordCreator/BrowserRecordCreator.html" target="_blank"> browser record creator</a>,
@@ -598,40 +609,49 @@
                   alert("URL copied to clipboard!\nNow you can paste it elsewhere!\n\n" + urlString);
               }
           });
-
           return copyButton;
       }
 
+      //This is a helper function that takes in a button and a link
+      // and makes it so that the link is opened when a person clicks a button
+      // this can also be used to initiate downloads if the link is to a file.
+      function addOpeningURLonButtonClick (button, link) {
+        // Adding an event listener to the button for when clicking occurs
+        button.addEventListener("click", () => {
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
+        return button;
+      }
 
 
       // A function that will create a download button for the csv file
+      //As of 6/15/2025, this file only contains data from the most recently uploaded dataset.
       function createDownloadCSVButton(csv, filename) {
         // Creating a download link for the csv file
         const downloadLink = createDownloadCSVLink(csv.csv, filename);
         // Creating the button
-        const downloadButton = document.createElement("button");
+        let downloadButton = document.createElement("button");
         // Adding text to the button
         downloadButton.innerText = "CSV";
-        // Adding an event listener to the button
-        downloadButton.addEventListener("click", () => {
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-        });
+        downloadButton = addOpeningURLonButtonClick(downloadButton, downloadLink);
         return downloadButton;
       }
 
-      function createDownlodJSONButton(json, filename) {
-        // Creating a download link for the csv file
+      //A function that will create a download button for the JSON file
+      //As of 6/15/2025, this file only contains data from the most recently uploaded dataset.
+      // For the first argument, this takes in a json object (a "javascript object", not a string)
+      // For the second argument, the filename field is a string.
+      function createDownloadJSONButton(json, filename) {
+        // Creating a download link for the JSON file
         const downloadLink = createDownloadJSONLink(json, filename);
         // Creating the button
-        const downloadButton = document.createElement("button");
+        let downloadButton = document.createElement("button");
         // Adding text to the button
         downloadButton.innerText = "JSON";
         // Adding an event listener to the button
-        downloadButton.addEventListener("click", () => {
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-        });
+        downloadButton = addOpeningURLonButtonClick(downloadButton, downloadLink);
         return downloadButton;
       }
 
@@ -643,7 +663,7 @@
         // Create download csv button
         const downloadCSVButton = createDownloadCSVButton(csvContent, filename);
         // Create Download JSON button
-        const downloadJSONButton = createDownlodJSONButton(jsonified, filename);
+        const downloadJSONButton = createDownloadJSONButton(jsonified, filename);
         // Create Download URL button (technically a copy button)
         // Only show this button if someone has loaded from url.
         let downloadURLButton = null // initializing.
