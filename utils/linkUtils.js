@@ -115,6 +115,19 @@ export function parseUrl(url) {
   }
 }
 
+//This is a helper function that takes in a button and a link
+// and makes it so that the link is opened when a person clicks a button
+// this can also be used to initiate downloads if the link is to a file.
+function addOpeningURLonButtonClick (button, link) {
+  // Adding an event listener to the button for when clicking occurs
+  button.addEventListener("click", () => {
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+  return button;
+}
+
 
 window.loadJsonFromUrl = loadJsonFromUrl; //line needed for index.html to see the function after importing.
 window.isValidUrl = isValidUrl; //line needed for index.html to see the function after importing.
@@ -122,4 +135,5 @@ window.createDownloadJSONLink = createDownloadJSONLink; //line needed for index.
 window.createDownloadCSVLink = createDownloadCSVLink; //line needed for index.html to see the function after importing.
 window.jsonToUrl = jsonToUrl; //line needed for index.html to see the function after importing.
 window.createCopyUrlLink = createCopyUrlLink; //line needed for index.html to see the function after importing.
+window.addOpeningURLonButtonClick = addOpeningURLonButtonClick; //line needed for index.html to see the function after importing.
 window.parseUrl = parseUrl; //line needed for index.html to see the function after importing.

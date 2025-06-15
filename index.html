@@ -29,7 +29,7 @@
       import { cleanJsonFigDict } from './utils/figDictUtils.js'; 
       import {executeImplicitDataSeriesOperations} from './utils/json_equationer/implicitUtils.js'
       import { jsonifyData, findFileType, jsonifyTSV, jsonifyCSV, getFileName, readFileAsText } from './utils/fileUtils.js'; 
-      import { loadJsonFromUrl, isValidUrl, createDownloadJSONLink, createDownloadCSVLink, jsonToUrl, createCopyUrlLink, parseUrl } from './utils/linkUtils.js'; 
+      import { loadJsonFromUrl, isValidUrl, createDownloadJSONLink, createDownloadCSVLink, jsonToUrl, createCopyUrlLink, addOpeningURLonButtonClick, parseUrl } from './utils/linkUtils.js'; 
     </script>  
     <style>
       .file-actions {
@@ -612,18 +612,6 @@
           return copyButton;
       }
 
-      //This is a helper function that takes in a button and a link
-      // and makes it so that the link is opened when a person clicks a button
-      // this can also be used to initiate downloads if the link is to a file.
-      function addOpeningURLonButtonClick (button, link) {
-        // Adding an event listener to the button for when clicking occurs
-        button.addEventListener("click", () => {
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        });
-        return button;
-      }
 
 
       // A function that will create a download button for the csv file
