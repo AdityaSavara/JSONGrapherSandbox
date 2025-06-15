@@ -73,6 +73,12 @@ function applyPlotStyleToPlotlyDict(figDict, plotStyle = null) {
     if (String(plotStyle.layout_style).toLowerCase() !== "none") {
         if (plotStyle.layout_style === "") {
             plotStyle.layout_style = "default";
+            if ("z" in figDict.data[0]) {
+                console.warn("Warning: No layout_style provided and 'z' field found in first data series. " +
+                    "For 'bubble2d' plots, it is recommended to set layout_style to 'default'. " +
+                    "For 'mesh3d' graphs and 'scatter3d' graphs, it is recommended to set layout_style to 'default3d'. " +
+                    "Set layout_style to 'none' or another layout_style to avoid this warning.");
+            };
         }
         //figDict = removeLayoutStyleFromPlotlyDict(figDict);
         figDict = applyLayoutStyleToPlotlyDict(figDict, plotStyle.layout_style);
@@ -392,7 +398,7 @@ function prepareBubbleSizes(dataSeries) {
     }
 
     // Scale the bubbles to a max size
-    const maxBubbleSize = dataSeries.max_bubble_size || 10;
+    const maxBubbleSize = dataSeries.max_bubble_size || 50;
     dataSeries.marker.size = dataSeries.marker.size.map(value => value * maxBubbleSize);
 
     // Set hover text to original z values
