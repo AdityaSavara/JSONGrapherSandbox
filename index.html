@@ -29,7 +29,7 @@
       import { cleanJsonFigDict } from './utils/figDictUtils.js'; 
       import {executeImplicitDataSeriesOperations} from './utils/json_equationer/implicitUtils.js'
       import { jsonifyData, findFileType, jsonifyTSV, jsonifyCSV, getFileName, readFileAsText } from './utils/fileUtils.js'; 
-      import { loadJsonFromUrl, isValidUrl, createDownloadJSONLink, createDownloadCSVLink, jsonToUrl, createCopyUrlLink, addOpeningURLonButtonClick, addLinkToButton, parseUrl } from './utils/linkUtils.js'; 
+      import { loadJsonFromUrl, isValidUrl, createDownloadJSONLink, createDownloadCSVLink, jsonToUrl, createCopyUrlLink, addOpeningURLonButtonClick, addDownloadingLinkToButton, parseUrl } from './utils/linkUtils.js'; 
     </script>  
     <style>
       .file-actions {
@@ -105,9 +105,9 @@
         const example1DownloadJSONLink = createDownloadJSONLink(example1json, "Example1_JSONGrapher.json");
         const example2DownloadJSONLink = createDownloadJSONLink(example2json, "Example2_JSONGrapher.json");
         const example3DownloadJSONLink = createDownloadJSONLink(example3json, "Example3_JSONGrapher.json");
-        addLinkToButton("Example1", example1DownloadJSONLink);
-        addLinkToButton("Example2", example2DownloadJSONLink);
-        addLinkToButton("Example3", example3DownloadJSONLink);
+        addDownloadingLinkToButton("Example1", example1DownloadJSONLink); //Desired filename will be extracted from downloadLink object
+        addDownloadingLinkToButton("Example2", example2DownloadJSONLink); //Desired filename will be extracted from downloadLink object
+        addDownloadingLinkToButton("Example3", example3DownloadJSONLink); //Desired filename will be extracted from downloadLink object
       }
 
       // Function to run myInitCode once DOM is ready. Must be functionalized so can use await inside.

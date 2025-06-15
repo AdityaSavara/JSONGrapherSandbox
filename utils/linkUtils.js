@@ -128,18 +128,25 @@ export function addOpeningURLonButtonClick (button, link) {
   return button;
 }
 
-//Helper function that works with addOpeningURLonButtonClick
-//This takes a url that could be for file download
-//along with a button ID, to get the button object
-// and then call addOpeningURLonButtonClick
-export function addLinkToButton(buttonId, url) {
+// Helper function that opens a prepared <a> element in a new window via button click
+export function addNewWindowLinkToButton(buttonId, downloadLink) {
   const button = document.getElementById(buttonId);
-  const link = document.createElement("a");
-  link.href = url;
-  link.target = "_blank";
-  addOpeningURLonButtonClick(button, link);
+  // Ensure it opens in a new tab and applies best practices
+  downloadLink.target = "_blank";
+  downloadLink.rel = "noopener noreferrer";
+  addOpeningURLonButtonClick(button, downloadLink);
 }
 
+// Helper function that triggers a file download via button click
+// The downloadLink is an <a> element, not a URL string
+export function addDownloadingLinkToButton(buttonId, downloadLink, filename) {
+  const button = document.getElementById(buttonId);
+  // Use filename if provided, otherwise keep what's already on the link
+  if (filename) {
+    downloadLink.setAttribute("download", filename);
+  }
+  addOpeningURLonButtonClick(button, downloadLink);
+}
 
 window.loadJsonFromUrl = loadJsonFromUrl; //line needed for index.html to see the function after importing.
 window.isValidUrl = isValidUrl; //line needed for index.html to see the function after importing.
@@ -148,5 +155,5 @@ window.createDownloadCSVLink = createDownloadCSVLink; //line needed for index.ht
 window.jsonToUrl = jsonToUrl; //line needed for index.html to see the function after importing.
 window.createCopyUrlLink = createCopyUrlLink; //line needed for index.html to see the function after importing.
 window.addOpeningURLonButtonClick = addOpeningURLonButtonClick; //line needed for index.html to see the function after importing.
-window.addLinkToButton = addLinkToButton; //line needed for index.html to see the function after importing.
+window.addDownloadingLinkToButton = addDownloadingLinkToButton; //line needed for index.html to see the function after importing.
 window.parseUrl = parseUrl; //line needed for index.html to see the function after importing.
